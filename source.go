@@ -5,5 +5,5 @@ type Emitter interface {
 }
 
 type Receiver interface {
-	Listen() <-chan Event
+	Listen(from int) <-chan Event
 }
