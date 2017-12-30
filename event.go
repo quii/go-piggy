@@ -7,6 +7,10 @@ type Event struct {
 	Facts    []Fact
 }
 
+type Fact struct {
+	Op, Key, Value string
+}
+
 // NewEvent creates a new event with a newly generated ID
 func NewEvent(eventType string, facts []Fact) Event {
 	u := uuid.NewV4()
@@ -17,14 +21,7 @@ func NewEvent(eventType string, facts []Fact) Event {
 	}
 }
 
-type Fact struct {
-	Op, Key, Value string
-}
-
-type Emitter interface {
-	Send(Event)
-}
-
-type Receiver interface {
-	Listen() <-chan Event
+func RandomEvent() Event {
+	u := uuid.NewV4()
+	return NewEvent("type" + u.String(), nil)
 }

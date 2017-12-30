@@ -9,19 +9,13 @@ import (
 
 func TestItCanSendAndReceiveFacts(t *testing.T) {
 
-	fact1 := Fact{
-		Op:    "SET",
-		Key:   "name",
-		Value: "cj",
-	}
-
-	event1 := NewEvent("manuscript", []Fact{fact1})
+	event := RandomEvent()
 
 	source := NewInMemoryEventSource()
 
 	eventsChannel := source.Listen(0)
 
-	source.Send(event1)
+	source.Send(event)
 
 	event, err := waitForEvent(eventsChannel)
 
@@ -29,7 +23,7 @@ func TestItCanSendAndReceiveFacts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assertEventEquals(t, event1, event)
+	assertEventEquals(t, event, event)
 }
 
 func assertEventEquals(t *testing.T, expected, actual Event) {
@@ -39,11 +33,10 @@ func assertEventEquals(t *testing.T, expected, actual Event) {
 }
 
 func waitForEvent(ch <-chan Event) (Event, error) {
-
 	select {
 	case e := <-ch:
 		return e, nil
 	case <-time.After(5 * time.Millisecond):
-		return Event{}, fmt.Errorf("Timed out waiting for event")
+		return Event{}, fmt.Errorf("timed out waiting for event")
 	}
 }
