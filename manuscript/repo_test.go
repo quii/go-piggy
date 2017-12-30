@@ -36,6 +36,34 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 	}
 }
 
+func TestItReadsFactsIntoManuscripts(t *testing.T) {
+	manuscript := go_piggy.NewEvent("manuscript", []go_piggy.Fact{
+		{"SET", "Title", "Hello, world"},
+		{"SET", "Abstract", "the catcher in the rye"},
+	})
+
+	eventSource := &go_piggy.InMemorySource{}
+	eventSource.Send(manuscript)
+
+	repo := NewRepo(eventSource)
+
+	time.Sleep(5 * time.Millisecond) //todo: bleh
+
+	parsedManuscript, exists := repo.manuscripts[manuscript.ID]
+
+	if !exists{
+		t.Error("The manuscript was not saved after event was sent")
+	}
+
+	if parsedManuscript.Title != "Hello, world" {
+		t.Errorf("manuscript title is incorrect, expect Hello, world but got %s", parsedManuscript.Title)
+	}
+
+	if parsedManuscript.Abstract != "the catcher in the rye" {
+		t.Errorf("manuscript abstract is incorrect, expect catcher in the rye byt got %s", parsedManuscript.Abstract)
+	}
+}
+
 func (r *Repo) manuscriptExists(id string) bool {
 	_, exists := r.manuscripts[id]
 	return exists

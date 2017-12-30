@@ -32,7 +32,20 @@ func (m *Repo) listenForUpdates() {
 }
 
 func newManuscriptFromEvent(facts []go_piggy.Fact) Manuscript {
-	//todo: make me work properly!
-	return Manuscript{}
+	m := Manuscript{}
+	
+	for _, f := range facts{
+		switch f.Op {
+		case "SET":
+			switch f.Key {
+			case "Title":
+				m.Title = f.Value
+			case "Abstract":
+				m.Abstract = f.Value
+			}
+		}
+	}
+	
+	return m
 }
 
