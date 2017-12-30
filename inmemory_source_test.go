@@ -1,10 +1,10 @@
 package go_piggy
 
 import (
-	"testing"
-	"reflect"
-	"time"
 	"fmt"
+	"reflect"
+	"testing"
+	"time"
 )
 
 func TestItCanSendAndReceiveFacts(t *testing.T) {

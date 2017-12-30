@@ -2,8 +2,8 @@ package manuscript
 
 import "github.com/quii/go-piggy"
 
-type Repo struct{
-	receiver go_piggy.Receiver
+type Repo struct {
+	receiver    go_piggy.Receiver
 	manuscripts map[string]Manuscript
 }
 
@@ -23,7 +23,7 @@ func (m *Repo) listenForUpdates() {
 
 	for event := range events {
 
-		if _, exists := m.manuscripts[event.ID]; !exists{
+		if _, exists := m.manuscripts[event.ID]; !exists {
 			m.manuscripts[event.ID] = newManuscriptFromEvent(event.Facts)
 		} else {
 			//todo: update manuscript from facts
@@ -33,8 +33,8 @@ func (m *Repo) listenForUpdates() {
 
 func newManuscriptFromEvent(facts []go_piggy.Fact) Manuscript {
 	m := Manuscript{}
-	
-	for _, f := range facts{
+
+	for _, f := range facts {
 		switch f.Op {
 		case "SET":
 			switch f.Key {
@@ -45,7 +45,6 @@ func newManuscriptFromEvent(facts []go_piggy.Fact) Manuscript {
 			}
 		}
 	}
-	
+
 	return m
 }
-

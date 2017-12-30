@@ -1,8 +1,8 @@
 package manuscript
 
 import (
-	"testing"
 	"github.com/quii/go-piggy"
+	"testing"
 	"time"
 )
 
@@ -51,7 +51,7 @@ func TestItReadsFactsIntoManuscripts(t *testing.T) {
 
 	parsedManuscript, exists := repo.manuscripts[manuscript.ID]
 
-	if !exists{
+	if !exists {
 		t.Error("The manuscript was not saved after event was sent")
 	}
 

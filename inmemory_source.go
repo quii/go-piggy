@@ -2,7 +2,7 @@ package go_piggy
 
 type InMemorySource struct {
 	events    []Event
-	listeners [] chan Event
+	listeners []chan Event
 }
 
 func NewInMemoryEventSource() *InMemorySource {
@@ -20,7 +20,7 @@ func (i *InMemorySource) Listen(from int) <-chan Event {
 
 func (i *InMemorySource) sendEventsFrom(from int, to chan<- Event) {
 	for _, e := range i.events[from:] {
-		to <-e
+		to <- e
 	}
 }
 

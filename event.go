@@ -23,5 +23,5 @@ func NewEvent(eventType string, facts []Fact) Event {
 
 func RandomEvent() Event {
 	u := uuid.NewV4()
-	return NewEvent("type" + u.String(), nil)
+	return NewEvent("type"+u.String(), nil)
 }
