@@ -69,9 +69,9 @@ func TestItReadsFactsIntoManuscripts(t *testing.T) {
 		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)
 	}
 
-	//if parsedManuscript.Authors[0] != "TS" {
-	//	t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript)
-	//}
+	if parsedManuscript.Authors[1] != "TS" {
+		t.Errorf("authors not set correctly, expect TS at [1] %s", parsedManuscript.Authors)
+	}
 }
 
 func (r *Repo) manuscriptExists(id string) bool {
