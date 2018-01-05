@@ -32,15 +32,15 @@ func NewManuscriptChangesEvent(m Manuscript, facts ...go_piggy.Fact) go_piggy.Ev
 }
 
 func TitleChanged(value string) go_piggy.Fact {
-	return go_piggy.Fact{"SET", "Title", value}
+	return go_piggy.Fact{Op: "SET", Key: "Title", Value: value}
 }
 
 func AbstractChanged(value string) go_piggy.Fact {
-	return go_piggy.Fact{"SET", "Abstract", value}
+	return go_piggy.Fact{Op: "SET", Key: "Abstract", Value: value}
 }
 
 func AuthorsSet(position int, name string) go_piggy.Fact {
-	return go_piggy.Fact{"SET", fmt.Sprintf("Authors[%d]", position), name}
+	return go_piggy.Fact{Op: "SET", Key: fmt.Sprintf("Authors[%d]", position), Value: name}
 }
 
 func AllAuthorsSet(authors []string) (facts []go_piggy.Fact) {
