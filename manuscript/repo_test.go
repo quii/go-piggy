@@ -68,6 +68,43 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 	}
 }
 
+func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
+	man1 := Manuscript{
+		entityID:go_piggy.RandomID(),
+	}
+
+	man2 := Manuscript{
+		entityID:go_piggy.RandomID(),
+	}
+
+	eventSource := &go_piggy.InMemorySource{}
+	eventSource.Send(NewManuscriptEvent(man1))
+	eventSource.Send(NewManuscriptEvent(man2))
+	eventSource.Send(NewManuscriptChanges(man1, TitleChanged("Showered and blue blazered")))
+	eventSource.Send(NewManuscriptChanges(man2, TitleChanged("Fill yourself with quarters")))
+
+	repo := NewRepo(eventSource)
+	time.Sleep(5 * time.Millisecond) //todo: bleh
+
+	expectedMan1State := Manuscript{
+		entityID:man1.entityID,
+		Title:"Showered and blue blazered",
+	}
+
+	expectedMan2State := Manuscript{
+		entityID:man2.entityID,
+		Title: "Fill yourself with quarters",
+	}
+
+	if actualMan1State, _ := repo.manuscripts[man1.entityID]; !reflect.DeepEqual(actualMan1State, expectedMan1State) {
+		t.Errorf("Man1 end state is not correct, expected %+v got %+v", expectedMan1State, actualMan1State)
+	}
+
+	if actualMan2State, _ := repo.manuscripts[man2.entityID]; !reflect.DeepEqual(actualMan2State, expectedMan2State) {
+		t.Errorf("Man1 end state is not correct, expected %+v got %+v", expectedMan1State, actualMan2State)
+	}
+}
+
 func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 	manuscript := Manuscript{
 		entityID: go_piggy.RandomID(),
