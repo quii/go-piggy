@@ -2,9 +2,9 @@ package manuscript
 
 import (
 	"github.com/quii/go-piggy"
+	"reflect"
 	"testing"
 	"time"
-	"reflect"
 )
 
 func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
@@ -70,30 +70,30 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	man1 := Manuscript{
-		entityID:go_piggy.RandomID(),
+		entityID: go_piggy.RandomID(),
 	}
 
 	man2 := Manuscript{
-		entityID:go_piggy.RandomID(),
+		entityID: go_piggy.RandomID(),
 	}
 
 	eventSource := &go_piggy.InMemorySource{}
 	eventSource.Send(NewManuscriptEvent(man1))
 	eventSource.Send(NewManuscriptEvent(man2))
-	eventSource.Send(NewManuscriptChanges(man1, TitleChanged("Showered and blue blazered")))
-	eventSource.Send(NewManuscriptChanges(man2, TitleChanged("Fill yourself with quarters")))
+	eventSource.Send(NewManuscriptChangesEvent(man1, TitleChanged("Showered and blue blazered")))
+	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("Fill yourself with quarters")))
 
 	repo := NewRepo(eventSource)
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
 	expectedMan1State := Manuscript{
-		entityID:man1.entityID,
-		Title:"Showered and blue blazered",
+		entityID: man1.entityID,
+		Title:    "Showered and blue blazered",
 	}
 
 	expectedMan2State := Manuscript{
-		entityID:man2.entityID,
-		Title: "Fill yourself with quarters",
+		entityID: man2.entityID,
+		Title:    "Fill yourself with quarters",
 	}
 
 	if actualMan1State, _ := repo.manuscripts[man1.entityID]; !reflect.DeepEqual(actualMan1State, expectedMan1State) {
@@ -113,8 +113,8 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 	eventSource := &go_piggy.InMemorySource{}
 
 	eventSource.Send(NewManuscriptEvent(manuscript))
-	eventSource.Send(NewManuscriptChanges(manuscript, AuthorsSet(0, "CJ")))
-	eventSource.Send(NewManuscriptChanges(manuscript, AuthorsSet(1, "TV")))
+	eventSource.Send(NewManuscriptChangesEvent(manuscript, AuthorsSet(0, "CJ")))
+	eventSource.Send(NewManuscriptChangesEvent(manuscript, AuthorsSet(1, "TV")))
 
 	repo := NewRepo(eventSource)
 

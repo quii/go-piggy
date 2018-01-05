@@ -1,8 +1,8 @@
 package manuscript
 
 import (
-	"github.com/quii/go-piggy"
 	"fmt"
+	"github.com/quii/go-piggy"
 )
 
 const manuscriptEventType = "manuscript"
@@ -23,7 +23,7 @@ func NewManuscriptEvent(m Manuscript) go_piggy.Event {
 	return event
 }
 
-func NewManuscriptChanges(m Manuscript, facts ...go_piggy.Fact) go_piggy.Event {
+func NewManuscriptChangesEvent(m Manuscript, facts ...go_piggy.Fact) go_piggy.Event {
 	return go_piggy.Event{
 		ID:    m.entityID,
 		Type:  manuscriptEventType,

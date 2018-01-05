@@ -18,7 +18,7 @@ func RandomID() string {
 func RandomEvent() Event {
 	return Event{
 		ID:    RandomID(),
-		Type:  "random"+RandomID(),
+		Type:  "random" + RandomID(),
 		Facts: nil,
 	}
 }
