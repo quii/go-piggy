@@ -74,6 +74,40 @@ func TestItReadsFactsIntoManuscripts(t *testing.T) {
 	}
 }
 
+func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
+	newManuscriptEvent := go_piggy.NewEvent("manuscript", []go_piggy.Fact{
+		{"SET", "Title", "Hello, world"},
+		{"SET", "Abstract", "the catcher in the rye"},
+		{"SET", "Authors[0]", "CJ"},
+	})
+
+	addNewAuthor := go_piggy.Event{
+		ID:    newManuscriptEvent.ID,
+		Type:  newManuscriptEvent.Type,
+		Facts: []go_piggy.Fact{
+			{"SET", "Authors[1]", "TV"},
+		},
+	}
+
+	eventSource := &go_piggy.InMemorySource{}
+	eventSource.Send(newManuscriptEvent)
+	eventSource.Send(addNewAuthor)
+
+	repo := NewRepo(eventSource)
+
+	time.Sleep(5 * time.Millisecond) //todo: bleh
+
+	parsedManuscript, _ := repo.manuscripts[newManuscriptEvent.ID]
+
+	if parsedManuscript.Authors[0] != "CJ" {
+		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)
+	}
+
+	if parsedManuscript.Authors[1] != "TV" {
+		t.Errorf("authors not set correctly, expect TV at [1] %s", parsedManuscript.Authors)
+	}
+}
+
 func (r *Repo) manuscriptExists(id string) bool {
 	_, exists := r.manuscripts[id]
 	return exists

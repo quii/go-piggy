@@ -22,24 +22,19 @@ func NewRepo(receiver go_piggy.Receiver) (m *Repo) {
 	return
 }
 
-func (m *Repo) listenForUpdates() {
-	events := m.receiver.Listen(0)
+func (r *Repo) listenForUpdates() {
+	events := r.receiver.Listen(0)
 
 	for event := range events {
-
-		if _, exists := m.manuscripts[event.ID]; !exists {
-			m.manuscripts[event.ID] = newManuscriptFromEvent(event.Facts)
-		} else {
-			//todo: update manuscript from facts
-		}
+		manuscript, _ := r.manuscripts[event.ID]
+		r.manuscripts[event.ID] = updateManuscript(manuscript, event.Facts)
 	}
 }
 
 var authorsRegex = regexp.MustCompile(`Authors\[\d+\]`)
 var authorIndexRegex = regexp.MustCompile(`(\d+)`) //todo: i suck at regex and it feels dangerous just to match the first number
 
-func newManuscriptFromEvent(facts []go_piggy.Fact) Manuscript {
-	m := Manuscript{}
+func updateManuscript(m Manuscript, facts []go_piggy.Fact) Manuscript {
 
 	for _, f := range facts {
 		switch f.Op {
