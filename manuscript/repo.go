@@ -27,6 +27,7 @@ func (r *Repo) listenForUpdates() {
 
 	for event := range events {
 		manuscript, _ := r.manuscripts[event.ID]
+		manuscript.entityID = event.ID
 		r.manuscripts[event.ID] = updateManuscript(manuscript, event.Facts)
 	}
 }

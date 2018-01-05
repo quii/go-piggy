@@ -11,17 +11,14 @@ type Fact struct {
 	Op, Key, Value string
 }
 
-// NewEvent creates a new event with a newly generated ID
-func NewEvent(eventType string, facts []Fact) Event {
-	u := uuid.NewV4()
-	return Event{
-		ID:    u.String(),
-		Type:  eventType,
-		Facts: facts,
-	}
+func RandomID() string {
+	return uuid.NewV4().String()
 }
 
 func RandomEvent() Event {
-	u := uuid.NewV4()
-	return NewEvent("type"+u.String(), nil)
+	return Event{
+		ID:    RandomID(),
+		Type:  "random"+RandomID(),
+		Facts: nil,
+	}
 }

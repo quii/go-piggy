@@ -1,6 +1,7 @@
 package manuscript
 
 type Manuscript struct {
+	entityID        string
 	Title, Abstract string
 	Authors         []string
 }

@@ -4,16 +4,21 @@ import (
 	"github.com/quii/go-piggy"
 	"testing"
 	"time"
+	"reflect"
 )
 
 func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 
-	manuscript1 := go_piggy.NewEvent("manuscript", nil)
-	manuscript2 := go_piggy.NewEvent("manuscript", nil)
+	manuscript1 := Manuscript{
+		entityID: go_piggy.RandomID(),
+	}
+	manuscript2 := Manuscript{
+		entityID: go_piggy.RandomID(),
+	}
 
 	eventSource := &go_piggy.InMemorySource{}
-	eventSource.Send(manuscript1)
-	eventSource.Send(manuscript2)
+	eventSource.Send(NewManuscriptEvent(manuscript1))
+	eventSource.Send(NewManuscriptEvent(manuscript2))
 
 	repo := NewRepo(eventSource)
 
@@ -23,11 +28,11 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 		t.Errorf("Repo has not processed 2 manuscripts, it has done %d", len(repo.manuscripts))
 	}
 
-	if !repo.manuscriptExists(manuscript1.ID) {
+	if !repo.manuscriptExists(manuscript1.entityID) {
 		t.Errorf("Could not find manuscript 1 in repo %s", repo.manuscripts)
 	}
 
-	if !repo.manuscriptExists(manuscript2.ID) {
+	if !repo.manuscriptExists(manuscript2.entityID) {
 		t.Errorf("Could not find manuscript 2 in repo %s", repo.manuscripts)
 	}
 
@@ -36,68 +41,49 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 	}
 }
 
-func TestItReadsFactsIntoManuscripts(t *testing.T) {
-	manuscript := go_piggy.NewEvent("manuscript", []go_piggy.Fact{
-		{"SET", "Title", "Hello, world"},
-		{"SET", "Abstract", "the catcher in the rye"},
-		{"SET", "Authors[0]", "CJ"},
-		{"SET", "Authors[1]", "TS"},
-	})
+func TestItReadsNewManuscriptEvent(t *testing.T) {
+
+	manuscript := Manuscript{
+		entityID: go_piggy.RandomID(),
+		Title:    "Hello, world",
+		Abstract: "the catcher in the rye",
+		Authors:  []string{"CJ", "TS"},
+	}
 
 	eventSource := &go_piggy.InMemorySource{}
-	eventSource.Send(manuscript)
+	eventSource.Send(NewManuscriptEvent(manuscript))
 
 	repo := NewRepo(eventSource)
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	parsedManuscript, exists := repo.manuscripts[manuscript.ID]
+	parsedManuscript, exists := repo.manuscripts[manuscript.entityID]
 
 	if !exists {
 		t.Error("The manuscript was not saved after event was sent")
 	}
 
-	if parsedManuscript.Title != "Hello, world" {
-		t.Errorf("manuscript title is incorrect, expect Hello, world but got %s", parsedManuscript.Title)
-	}
-
-	if parsedManuscript.Abstract != "the catcher in the rye" {
-		t.Errorf("manuscript abstract is incorrect, expect catcher in the rye byt got %s", parsedManuscript.Abstract)
-	}
-
-	if parsedManuscript.Authors[0] != "CJ" {
-		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)
-	}
-
-	if parsedManuscript.Authors[1] != "TS" {
-		t.Errorf("authors not set correctly, expect TS at [1] %s", parsedManuscript.Authors)
+	if !reflect.DeepEqual(parsedManuscript, manuscript) {
+		t.Fatalf("The manuscript sent in is not the same as the one that was parsed from facts expected: %+v actual: %+v", manuscript, parsedManuscript)
 	}
 }
 
 func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
-	newManuscriptEvent := go_piggy.NewEvent("manuscript", []go_piggy.Fact{
-		{"SET", "Title", "Hello, world"},
-		{"SET", "Abstract", "the catcher in the rye"},
-		{"SET", "Authors[0]", "CJ"},
-	})
-
-	addNewAuthor := go_piggy.Event{
-		ID:    newManuscriptEvent.ID,
-		Type:  newManuscriptEvent.Type,
-		Facts: []go_piggy.Fact{
-			{"SET", "Authors[1]", "TV"},
-		},
+	manuscript := Manuscript{
+		entityID: go_piggy.RandomID(),
 	}
 
 	eventSource := &go_piggy.InMemorySource{}
-	eventSource.Send(newManuscriptEvent)
-	eventSource.Send(addNewAuthor)
+
+	eventSource.Send(NewManuscriptEvent(manuscript))
+	eventSource.Send(NewManuscriptChanges(manuscript, AuthorsSet(0, "CJ")))
+	eventSource.Send(NewManuscriptChanges(manuscript, AuthorsSet(1, "TV")))
 
 	repo := NewRepo(eventSource)
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	parsedManuscript, _ := repo.manuscripts[newManuscriptEvent.ID]
+	parsedManuscript, _ := repo.manuscripts[manuscript.entityID]
 
 	if parsedManuscript.Authors[0] != "CJ" {
 		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)
