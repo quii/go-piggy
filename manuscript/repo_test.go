@@ -40,6 +40,8 @@ func TestItReadsFactsIntoManuscripts(t *testing.T) {
 	manuscript := go_piggy.NewEvent("manuscript", []go_piggy.Fact{
 		{"SET", "Title", "Hello, world"},
 		{"SET", "Abstract", "the catcher in the rye"},
+		{"SET", "Authors[0]", "CJ"},
+		{"SET", "Authors[1]", "TS"},
 	})
 
 	eventSource := &go_piggy.InMemorySource{}
@@ -62,6 +64,14 @@ func TestItReadsFactsIntoManuscripts(t *testing.T) {
 	if parsedManuscript.Abstract != "the catcher in the rye" {
 		t.Errorf("manuscript abstract is incorrect, expect catcher in the rye byt got %s", parsedManuscript.Abstract)
 	}
+
+	if parsedManuscript.Authors[0] != "CJ" {
+		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)
+	}
+
+	//if parsedManuscript.Authors[0] != "TS" {
+	//	t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript)
+	//}
 }
 
 func (r *Repo) manuscriptExists(id string) bool {
