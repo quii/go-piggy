@@ -10,10 +10,10 @@ import (
 func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 
 	manuscript1 := Manuscript{
-		entityID: go_piggy.RandomID(),
+		EntityID: go_piggy.RandomID(),
 	}
 	manuscript2 := Manuscript{
-		entityID: go_piggy.RandomID(),
+		EntityID: go_piggy.RandomID(),
 	}
 
 	eventSource := &go_piggy.InMemorySource{}
@@ -28,11 +28,11 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 		t.Errorf("Repo has not processed 2 manuscripts, it has done %d", len(repo.manuscripts))
 	}
 
-	if !repo.manuscriptExists(manuscript1.entityID) {
+	if !repo.manuscriptExists(manuscript1.EntityID) {
 		t.Errorf("Could not find manuscript 1 in repo %s", repo.manuscripts)
 	}
 
-	if !repo.manuscriptExists(manuscript2.entityID) {
+	if !repo.manuscriptExists(manuscript2.EntityID) {
 		t.Errorf("Could not find manuscript 2 in repo %s", repo.manuscripts)
 	}
 
@@ -44,7 +44,7 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 	manuscript := Manuscript{
-		entityID: go_piggy.RandomID(),
+		EntityID: go_piggy.RandomID(),
 		Title:    "Hello, world",
 		Abstract: "the catcher in the rye",
 		Authors:  []string{"CJ", "TS"},
@@ -57,7 +57,7 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	parsedManuscript, exists := repo.manuscripts[manuscript.entityID]
+	parsedManuscript, exists := repo.manuscripts[manuscript.EntityID]
 
 	if !exists {
 		t.Error("The manuscript was not saved after event was sent")
@@ -70,11 +70,11 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	man1 := Manuscript{
-		entityID: go_piggy.RandomID(),
+		EntityID: go_piggy.RandomID(),
 	}
 
 	man2 := Manuscript{
-		entityID: go_piggy.RandomID(),
+		EntityID: go_piggy.RandomID(),
 	}
 
 	eventSource := &go_piggy.InMemorySource{}
@@ -87,27 +87,27 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
 	expectedMan1State := Manuscript{
-		entityID: man1.entityID,
+		EntityID: man1.EntityID,
 		Title:    "Showered and blue blazered",
 	}
 
 	expectedMan2State := Manuscript{
-		entityID: man2.entityID,
+		EntityID: man2.EntityID,
 		Title:    "Fill yourself with quarters",
 	}
 
-	if actualMan1State, _ := repo.manuscripts[man1.entityID]; !reflect.DeepEqual(actualMan1State, expectedMan1State) {
+	if actualMan1State, _ := repo.manuscripts[man1.EntityID]; !reflect.DeepEqual(actualMan1State, expectedMan1State) {
 		t.Errorf("Man1 end state is not correct, expected %+v got %+v", expectedMan1State, actualMan1State)
 	}
 
-	if actualMan2State, _ := repo.manuscripts[man2.entityID]; !reflect.DeepEqual(actualMan2State, expectedMan2State) {
+	if actualMan2State, _ := repo.manuscripts[man2.EntityID]; !reflect.DeepEqual(actualMan2State, expectedMan2State) {
 		t.Errorf("Man1 end state is not correct, expected %+v got %+v", expectedMan1State, actualMan2State)
 	}
 }
 
 func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 	manuscript := Manuscript{
-		entityID: go_piggy.RandomID(),
+		EntityID: go_piggy.RandomID(),
 	}
 
 	eventSource := &go_piggy.InMemorySource{}
@@ -120,7 +120,7 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	parsedManuscript, _ := repo.manuscripts[manuscript.entityID]
+	parsedManuscript, _ := repo.manuscripts[manuscript.EntityID]
 
 	if parsedManuscript.Authors[0] != "CJ" {
 		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)

@@ -9,7 +9,7 @@ const manuscriptEventType = "manuscript"
 
 func NewManuscriptEvent(m Manuscript) go_piggy.Event {
 	event := go_piggy.Event{
-		ID:   m.entityID,
+		ID:   m.EntityID,
 		Type: manuscriptEventType,
 		Facts: []go_piggy.Fact{
 			TitleChanged(m.Title),
@@ -17,7 +17,7 @@ func NewManuscriptEvent(m Manuscript) go_piggy.Event {
 		},
 	}
 
-	////todo: would prefer to call AllAuthorsSet inline facts above but cant get it to
+	//todo: would prefer to call AllAuthorsSet inline facts above but cant get it to
 	event.Facts = append(event.Facts, AllAuthorsSet(m.Authors)...)
 
 	return event
@@ -25,7 +25,7 @@ func NewManuscriptEvent(m Manuscript) go_piggy.Event {
 
 func NewManuscriptChangesEvent(m Manuscript, facts ...go_piggy.Fact) go_piggy.Event {
 	return go_piggy.Event{
-		ID:    m.entityID,
+		ID:    m.EntityID,
 		Type:  manuscriptEventType,
 		Facts: facts,
 	}
