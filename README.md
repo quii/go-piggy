@@ -10,6 +10,7 @@ Clone into `$GOPATH/src/github.com/quii` as usual for Go projects
 
 - The root package contains the main event sourcing code. (in memory source might move when > 1 implementation exists)
 - Manuscript is an example package using event sourcing to contruct a projection from events. 
+- cmd is an app that brings it all together as a HTTP server, you can `POST /` to create a document which returns a `Location` header for you to follow to `GET` it.
 
 ### Tentative next steps
 

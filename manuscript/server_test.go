@@ -8,22 +8,28 @@ import (
 	"testing"
 )
 
-type fakeEventSource struct {
+type fakeManuscriptRepo struct {
 	createManuscriptRaised string
+	manuscripts            map[string]Manuscript
 }
 
-func (f *fakeEventSource) CreateManuscript(id string) {
+func (f *fakeManuscriptRepo) CreateManuscript(id string) {
 	f.createManuscriptRaised = id
+}
+
+func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
+	man, _ := f.manuscripts[id]
+	return man
 }
 
 func TestItRaisesNewManuscriptEventOnPost(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 
-	eventSource := &fakeEventSource{}
+	repo := &fakeManuscriptRepo{}
 
 	server := Server{
-		eventSource: eventSource,
-		entityIdGenerator: func() string {
+		Repo: repo,
+		EntityIdGenerator: func() string {
 			return "random-id"
 		},
 	}
@@ -40,18 +46,9 @@ func TestItRaisesNewManuscriptEventOnPost(t *testing.T) {
 		t.Errorf("did not get a location header pointing to new document, headers were %+v", response.Header())
 	}
 
-	if eventSource.createManuscriptRaised != "random-id" {
+	if repo.createManuscriptRaised != "random-id" {
 		t.Errorf("event source did not have a new document raised with random-id")
 	}
-}
-
-type fakeManuscriptRepo struct {
-	manuscripts map[string]Manuscript
-}
-
-func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
-	man, _ := f.manuscripts[id]
-	return man
 }
 
 func TestItGetsManuscripts(t *testing.T) {
@@ -69,7 +66,7 @@ func TestItGetsManuscripts(t *testing.T) {
 	}
 
 	server := Server{
-		manuscriptRepo: repo,
+		Repo: repo,
 	}
 
 	request, _ := http.NewRequest(http.MethodGet, "/random-id", nil)

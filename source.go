@@ -7,3 +7,8 @@ type Emitter interface {
 type Receiver interface {
 	Listen(from int) <-chan Event
 }
+
+type EventSource interface {
+	Emitter
+	Receiver
+}
