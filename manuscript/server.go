@@ -34,7 +34,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		manuscriptJSON, _ := json.Marshal(manuscript)
 
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write(manuscriptJSON)
 		w.WriteHeader(http.StatusOK)
+		w.Write(manuscriptJSON)
 	}
 }
