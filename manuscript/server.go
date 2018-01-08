@@ -8,13 +8,13 @@ import (
 
 // deffo WIP, just experimenting with how this should all hang together
 
-type ManuscriptRepo interface {
+type Repo interface {
 	CreateManuscript(id string)
 	GetManuscript(id string) Manuscript
 }
 
 type Server struct {
-	Repo              ManuscriptRepo
+	Repo              Repo
 	EntityIdGenerator func() string
 }
 
