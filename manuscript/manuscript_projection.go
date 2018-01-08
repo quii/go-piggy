@@ -7,16 +7,16 @@ import (
 	"strconv"
 )
 
-type Repo struct {
+type Projection struct {
 	receiver    go_piggy.Receiver
 	emitter     go_piggy.Emitter
 	manuscripts map[string]Manuscript
 }
 
 //todo: should a thing ever use both? is it really just one interface? or too many concerns?
-func NewRepo(eventSource go_piggy.EventSource) (m *Repo) {
+func NewProjection(eventSource go_piggy.EventSource) (m *Projection) {
 
-	m = new(Repo)
+	m = new(Projection)
 	m.receiver = eventSource
 	m.emitter = eventSource
 	m.manuscripts = make(map[string]Manuscript)
@@ -26,26 +26,26 @@ func NewRepo(eventSource go_piggy.EventSource) (m *Repo) {
 	return
 }
 
-func (r *Repo) CreateManuscript(id string) {
-	r.emitter.Send(NewManuscriptEvent(Manuscript{
+func (p *Projection) CreateManuscript(id string) {
+	p.emitter.Send(NewManuscriptEvent(Manuscript{
 		EntityID: id,
 		Title:    "Title not set yet",
 	}))
 }
 
-func (r *Repo) GetManuscript(id string) Manuscript {
-	m, _ := r.manuscripts[id]
-	return m
+func (p *Projection) GetManuscript(id string) Manuscript {
+	man, _ := p.manuscripts[id]
+	return man
 }
 
-func (r *Repo) listenForUpdates() {
-	events := r.receiver.Listen(0)
+func (p *Projection) listenForUpdates() {
+	events := p.receiver.Listen(0)
 
 	for event := range events {
 		log.Printf("got a new event %+v\n", event)
-		manuscript, _ := r.manuscripts[event.ID]
+		manuscript, _ := p.manuscripts[event.ID]
 		manuscript.EntityID = event.ID
-		r.manuscripts[event.ID] = updateManuscript(manuscript, event.Facts)
+		p.manuscripts[event.ID] = updateManuscript(manuscript, event.Facts)
 	}
 }
 
