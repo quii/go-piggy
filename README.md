@@ -14,6 +14,7 @@ Clone into `$GOPATH/src/github.com/quii` as usual for Go projects
 
 ### Tentative next steps
 
+- Bring testify assert because its just silly not to
 - Create a REST-ish API for creating and updating manuscripts to see how easy (or not) the interaction is with the event sourcing
 - Create a db backed event source (maybe bolt db for fun)
 - Improve naming to be more like how Young describes (https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf)

@@ -2,7 +2,7 @@ package manuscript
 
 import (
 	"github.com/quii/go-piggy"
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -24,21 +24,9 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	if len(projection.manuscripts) != 2 {
-		t.Errorf("Repo has not processed 2 manuscripts, it has done %d", len(projection.manuscripts))
-	}
-
-	if !projection.manuscriptExists(manuscript1.EntityID) {
-		t.Errorf("Could not find manuscript 1 in repo %s", projection.manuscripts)
-	}
-
-	if !projection.manuscriptExists(manuscript2.EntityID) {
-		t.Errorf("Could not find manuscript 2 in repo %s", projection.manuscripts)
-	}
-
-	if projection.manuscriptExists("unknown") {
-		t.Error("Should not be able to find unknown manuscript in repo!")
-	}
+	assert.Len(t, projection.manuscripts, 2)
+	assert.Contains(t, projection.manuscripts, manuscript1.EntityID)
+	assert.Contains(t, projection.manuscripts, manuscript2.EntityID)
 }
 
 func TestItReadsNewManuscriptEvent(t *testing.T) {
@@ -59,13 +47,8 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 	parsedManuscript, exists := projection.manuscripts[manuscript.EntityID]
 
-	if !exists {
-		t.Error("The manuscript was not saved after event was sent")
-	}
-
-	if !reflect.DeepEqual(parsedManuscript, manuscript) {
-		t.Fatalf("The manuscript sent in is not the same as the one that was parsed from facts expected: %+v actual: %+v", manuscript, parsedManuscript)
-	}
+	assert.True(t, exists)
+	assert.Equal(t, parsedManuscript, manuscript)
 }
 
 func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
@@ -96,13 +79,8 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 		Title:    "Fill yourself with quarters",
 	}
 
-	if actualMan1State, _ := projection.manuscripts[man1.EntityID]; !reflect.DeepEqual(actualMan1State, expectedMan1State) {
-		t.Errorf("Man1 end state is not correct, expected %+v got %+v", expectedMan1State, actualMan1State)
-	}
-
-	if actualMan2State, _ := projection.manuscripts[man2.EntityID]; !reflect.DeepEqual(actualMan2State, expectedMan2State) {
-		t.Errorf("Man1 end state is not correct, expected %+v got %+v", expectedMan1State, actualMan2State)
-	}
+	assert.Equal(t, projection.manuscripts[man1.EntityID], expectedMan1State)
+	assert.Equal(t, projection.manuscripts[man2.EntityID], expectedMan2State)
 }
 
 func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
@@ -122,13 +100,8 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 
 	parsedManuscript, _ := projection.manuscripts[manuscript.EntityID]
 
-	if parsedManuscript.Authors[0] != "CJ" {
-		t.Errorf("authors not set correctly, expect CJ at [0] %s", parsedManuscript.Authors)
-	}
-
-	if parsedManuscript.Authors[1] != "TV" {
-		t.Errorf("authors not set correctly, expect TV at [1] %s", parsedManuscript.Authors)
-	}
+	assert.Equal(t, parsedManuscript.Authors[0], "CJ")
+	assert.Equal(t, parsedManuscript.Authors[1], "TV")
 }
 
 func (p *Projection) manuscriptExists(id string) bool {

@@ -2,7 +2,7 @@ package go_piggy
 
 import (
 	"fmt"
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -17,13 +17,13 @@ func TestItCanSendAndReceiveFacts(t *testing.T) {
 
 	source.Send(event)
 
-	event, err := waitForEvent(eventsChannel)
+	receivedEvent, err := waitForEvent(eventsChannel)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assertEventEquals(t, event, event)
+	assert.Equal(t, event, receivedEvent)
 }
 
 func TestItCanListenFromAPoint(t *testing.T) {
@@ -51,15 +51,9 @@ func TestItCanListenFromAPoint(t *testing.T) {
 		t.Fatalf("err waiting for second event, %s", err)
 	}
 
-	assertEventEquals(t, firstReceivedEvent, event2)
-	assertEventEquals(t, secondReceivedEvent, event3)
+	assert.Equal(t, firstReceivedEvent, event2)
+	assert.Equal(t, secondReceivedEvent, event3)
 
-}
-
-func assertEventEquals(t *testing.T, expected, actual Event) {
-	if !reflect.DeepEqual(expected, actual) {
-		t.Error("Expected", expected, "but got", actual)
-	}
 }
 
 func waitForEvent(ch <-chan Event) (Event, error) {
