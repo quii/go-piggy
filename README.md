@@ -14,8 +14,15 @@ Clone into `$GOPATH/src/github.com/quii` as usual for Go projects
 
 ### Tentative next steps
 
-- Bring testify assert because its just silly not to
-- Create a REST-ish API for creating and updating manuscripts to see how easy (or not) the interaction is with the event sourcing
+
+- Make versioning visible
+    - Function that returns list of versions of an entity
+    - Function that returns all events up to a version
+    - Make useful functions out of these centered around manuscripts
+- Make a manuscript viewer. Be able to view different versions
+    - Make a flashy JS version with a slider
+- Metadata on events, `author`, `datetime`, `notes`    
+- PATCH documents.
 - Create a db backed event source (maybe bolt db for fun)
 - Improve naming to be more like how Young describes (https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf)
 
