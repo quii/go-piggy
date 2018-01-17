@@ -24,9 +24,9 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	assert.Len(t, projection.manuscripts, 2)
-	assert.Contains(t, projection.manuscripts, manuscript1.EntityID)
-	assert.Contains(t, projection.manuscripts, manuscript2.EntityID)
+	assert.Len(t, projection.versionedManuscripts, 2)
+	assert.Contains(t, projection.versionedManuscripts, manuscript1.EntityID)
+	assert.Contains(t, projection.versionedManuscripts, manuscript2.EntityID)
 }
 
 func TestItReadsNewManuscriptEvent(t *testing.T) {
@@ -45,10 +45,9 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	parsedManuscript, exists := projection.manuscripts[manuscript.EntityID]
+	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
 
-	assert.True(t, exists)
-	assert.Equal(t, parsedManuscript, manuscript)
+	assert.Equal(t, manuscript, parsedManuscript)
 }
 
 func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
@@ -79,8 +78,8 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 		Title:    "Fill yourself with quarters",
 	}
 
-	assert.Equal(t, projection.manuscripts[man1.EntityID], expectedMan1State)
-	assert.Equal(t, projection.manuscripts[man2.EntityID], expectedMan2State)
+	assert.Equal(t, projection.versionedManuscripts.CurrentRevision(man1.EntityID), expectedMan1State)
+	assert.Equal(t, projection.versionedManuscripts.CurrentRevision(man2.EntityID), expectedMan2State)
 }
 
 func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
@@ -98,13 +97,13 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond) //todo: bleh
 
-	parsedManuscript, _ := projection.manuscripts[manuscript.EntityID]
+	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
 
 	assert.Equal(t, parsedManuscript.Authors[0], "CJ")
 	assert.Equal(t, parsedManuscript.Authors[1], "TV")
 }
 
 func (p *Projection) manuscriptExists(id string) bool {
-	_, exists := p.manuscripts[id]
+	_, exists := p.versionedManuscripts[id]
 	return exists
 }
