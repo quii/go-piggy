@@ -4,6 +4,10 @@ A playground for me to mess around with CQRS and event sourcing.
 
 Clone into `$GOPATH/src/github.com/quii` as usual for Go projects
 
+## dependencies
+
+- dep `brew install dep`
+
 `./build.sh`
 
 ## Notes
