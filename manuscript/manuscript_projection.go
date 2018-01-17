@@ -4,7 +4,6 @@ import (
 	"github.com/quii/go-piggy"
 	"log"
 	"regexp"
-	"strconv"
 )
 
 type Projection struct {
@@ -35,32 +34,9 @@ func (p *Projection) listenForUpdates() {
 		log.Printf("got a new event %+v\n", event)
 		manuscript, _ := p.manuscripts[event.ID]
 		manuscript.EntityID = event.ID
-		p.manuscripts[event.ID] = updateManuscript(manuscript, event.Facts)
+		p.manuscripts[event.ID] = manuscript.Update(event.Facts)
 	}
 }
 
 var authorsRegex = regexp.MustCompile(`Authors\[\d+\]`)
 var authorIndexRegex = regexp.MustCompile(`(\d+)`) //todo: i suck at regex and it feels dangerous just to match the first number
-
-func updateManuscript(m Manuscript, facts []go_piggy.Fact) Manuscript {
-
-	for _, f := range facts {
-		switch f.Op {
-		case "SET":
-			switch f.Key {
-			case "Title":
-				m.Title = f.Value
-			case "Abstract":
-				m.Abstract = f.Value
-			}
-
-			if authorsRegex.MatchString(f.Key) {
-				extractedIndex := authorIndexRegex.FindString(f.Key)
-				i, _ := strconv.Atoi(extractedIndex)
-				m.InsertAuthorIn(i, f.Value)
-			}
-		}
-	}
-
-	return m
-}

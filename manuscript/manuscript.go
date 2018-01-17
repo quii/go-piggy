@@ -1,5 +1,10 @@
 package manuscript
 
+import (
+	"github.com/quii/go-piggy"
+	"strconv"
+)
+
 type Manuscript struct {
 	EntityID        string
 	Title, Abstract string
@@ -24,4 +29,28 @@ func (m *Manuscript) InsertAuthorIn(index int, name string) {
 	newArray[index] = name
 
 	m.Authors = newArray
+}
+
+func (m *Manuscript) Update(facts []go_piggy.Fact) Manuscript {
+	newVersion := *m
+
+	for _, f := range facts {
+		switch f.Op {
+		case "SET":
+			switch f.Key {
+			case "Title":
+				newVersion.Title = f.Value
+			case "Abstract":
+				newVersion.Abstract = f.Value
+			}
+
+			if authorsRegex.MatchString(f.Key) {
+				extractedIndex := authorIndexRegex.FindString(f.Key)
+				i, _ := strconv.Atoi(extractedIndex)
+				newVersion.InsertAuthorIn(i, f.Value)
+			}
+		}
+	}
+
+	return newVersion
 }
