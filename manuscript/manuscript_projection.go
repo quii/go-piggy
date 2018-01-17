@@ -1,9 +1,9 @@
 package manuscript
 
 import (
+	"fmt"
 	"github.com/quii/go-piggy"
 	"regexp"
-	"fmt"
 )
 
 type Projection struct {
@@ -30,11 +30,11 @@ func (p *Projection) GetManuscript(entityID string) Manuscript {
 func (p *Projection) GetVersionManuscriptVersion(entityID string, version int) (Manuscript, error) {
 	versions, exists := p.versionedManuscripts[entityID]
 
-	if !exists{
+	if !exists {
 		return Manuscript{}, fmt.Errorf("manuscript %s does not exist", entityID)
 	}
 
-	if len(versions) < version{
+	if len(versions) < version {
 		return Manuscript{}, fmt.Errorf("manuscript version %d of %s does not exist", version, entityID)
 	}
 
