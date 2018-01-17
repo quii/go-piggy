@@ -9,28 +9,18 @@ import (
 
 type Projection struct {
 	receiver    go_piggy.Receiver
-	emitter     go_piggy.Emitter
 	manuscripts map[string]Manuscript
 }
 
-//todo: should a thing ever use both? is it really just one interface? or too many concerns?
-func NewProjection(eventSource go_piggy.EventSource) (m *Projection) {
+func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
 
 	m = new(Projection)
-	m.receiver = eventSource
-	m.emitter = eventSource
+	m.receiver = receiver
 	m.manuscripts = make(map[string]Manuscript)
 
 	go m.listenForUpdates()
 
 	return
-}
-
-func (p *Projection) CreateManuscript(id string) {
-	p.emitter.Send(NewManuscriptEvent(Manuscript{
-		EntityID: id,
-		Title:    "Title not set yet",
-	}))
 }
 
 func (p *Projection) GetManuscript(id string) Manuscript {

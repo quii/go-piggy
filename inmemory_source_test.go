@@ -53,7 +53,6 @@ func TestItCanListenFromAPoint(t *testing.T) {
 
 	assert.Equal(t, firstReceivedEvent, event2)
 	assert.Equal(t, secondReceivedEvent, event3)
-
 }
 
 func waitForEvent(ch <-chan Event) (Event, error) {
