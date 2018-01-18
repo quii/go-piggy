@@ -9,6 +9,7 @@ type Manuscript struct {
 	EntityID        string
 	Title, Abstract string
 	Authors         []string
+	Version         int
 }
 
 func (m *Manuscript) InsertAuthorIn(index int, name string) {
@@ -33,6 +34,8 @@ func (m *Manuscript) InsertAuthorIn(index int, name string) {
 
 func (m *Manuscript) Update(facts []go_piggy.Fact) Manuscript {
 	newVersion := *m
+
+	newVersion.Version++
 
 	for _, f := range facts {
 		switch f.Op {

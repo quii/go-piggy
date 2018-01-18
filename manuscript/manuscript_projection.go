@@ -27,7 +27,7 @@ func (p *Projection) GetManuscript(entityID string) Manuscript {
 }
 
 //todo: testme
-func (p *Projection) GetVersionManuscriptVersion(entityID string, version int) (Manuscript, error) {
+func (p *Projection) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
 	versions, exists := p.versionedManuscripts[entityID]
 
 	if !exists {
@@ -38,7 +38,7 @@ func (p *Projection) GetVersionManuscriptVersion(entityID string, version int) (
 		return Manuscript{}, fmt.Errorf("manuscript version %d of %s does not exist", version, entityID)
 	}
 
-	return versions[version], nil
+	return versions[version-1], nil
 }
 
 func (p *Projection) listenForUpdates() {

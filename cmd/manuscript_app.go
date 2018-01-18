@@ -11,13 +11,10 @@ func main() {
 	eventSource := go_piggy.NewInMemoryEventSource()
 
 	projector := manuscript.NewProjection(eventSource)
-	emitter := manuscript.NewEmitter(eventSource)
 
 	server := manuscript.Server{
-		Repo: struct {
-			*manuscript.Emitter
-			*manuscript.Projection
-		}{emitter, projector},
+		Repo:              projector,
+		Emitter:           eventSource,
 		EntityIdGenerator: go_piggy.RandomID,
 	}
 

@@ -47,7 +47,10 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
 
-	assert.Equal(t, manuscript, parsedManuscript)
+	expectedManuscript := manuscript
+	expectedManuscript.Version = 1
+
+	assert.Equal(t, expectedManuscript, parsedManuscript)
 }
 
 func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
@@ -64,6 +67,7 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	eventSource.Send(NewManuscriptEvent(man2))
 	eventSource.Send(NewManuscriptChangesEvent(man1, TitleChanged("Showered and blue blazered")))
 	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("Fill yourself with quarters")))
+	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("lol")))
 
 	projection := NewProjection(eventSource)
 	time.Sleep(5 * time.Millisecond) //todo: bleh
@@ -71,11 +75,13 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	expectedMan1State := Manuscript{
 		EntityID: man1.EntityID,
 		Title:    "Showered and blue blazered",
+		Version:  2,
 	}
 
 	expectedMan2State := Manuscript{
 		EntityID: man2.EntityID,
-		Title:    "Fill yourself with quarters",
+		Title:    "lol",
+		Version:  3,
 	}
 
 	assert.Equal(t, projection.versionedManuscripts.CurrentRevision(man1.EntityID), expectedMan1State)
