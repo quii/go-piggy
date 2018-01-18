@@ -37,13 +37,13 @@ func TestItRaisesNewManuscriptEventOnPost(t *testing.T) {
 	repo := &fakeManuscriptRepo{}
 	emitter := &fakeEmitter{}
 
-	server := Server{
-		Repo:    repo,
-		Emitter: emitter,
-		EntityIdGenerator: func() string {
+	server := NewServer(
+		repo,
+		emitter,
+		func() string {
 			return "random-id"
 		},
-	}
+	)
 
 	response := httptest.NewRecorder()
 
@@ -71,9 +71,15 @@ func TestItGetsManuscripts(t *testing.T) {
 		},
 	}
 
-	server := Server{
-		Repo: repo,
-	}
+	emitter := &fakeEmitter{}
+
+	server := NewServer(
+		repo,
+		emitter,
+		func() string {
+			return "random-id"
+		},
+	)
 
 	request, _ := http.NewRequest(http.MethodGet, "/random-id", nil)
 	response := httptest.NewRecorder()

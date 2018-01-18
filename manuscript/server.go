@@ -2,12 +2,11 @@ package manuscript
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"github.com/quii/go-piggy"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 // deffo WIP, just experimenting with how this should all hang together
@@ -21,56 +20,73 @@ type Server struct {
 	Repo              Repo
 	Emitter           go_piggy.Emitter
 	EntityIdGenerator func() string
+	handler           http.Handler
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.handler.ServeHTTP(w, r)
+}
 
-	entityId := strings.TrimPrefix(r.URL.Path, "/")
+//todo: entityIdGenerator should be an option with sensible default
+func NewServer(repo Repo, emitter go_piggy.Emitter, entityIdGenerator func() string) *Server {
+	s := new(Server)
+	s.Repo = repo
+	s.Emitter = emitter
+	s.EntityIdGenerator = entityIdGenerator
 
-	if r.Method == http.MethodPost && entityId == "" {
-		newEntityID := s.EntityIdGenerator()
+	r := mux.NewRouter()
+	r.HandleFunc("/{entityID}", s.getManuscript)
+	r.HandleFunc("/", s.createManuscript).Methods("POST")
+	r.HandleFunc("/{entityID}", s.addEventsToManuscript).Methods("POST")
 
-		s.Emitter.Send(NewManuscriptEvent(Manuscript{
-			EntityID: newEntityID,
-		}))
+	s.handler = r
 
-		w.Header().Add("location", "/"+newEntityID)
-		w.WriteHeader(http.StatusCreated)
+	return s
+}
 
-		//todo: test me!
-	} else if r.Method == http.MethodPost {
-		var facts []go_piggy.Fact
+func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
+	entityID := mux.Vars(r)["entityID"]
 
-		body, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
+	var facts []go_piggy.Fact
 
-		json.Unmarshal(body, &facts)
+	body, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 
-		log.Println("got some facts", facts)
+	json.Unmarshal(body, &facts)
 
-		s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityId}, facts...))
+	s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
+}
+
+func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
+	newEntityID := s.EntityIdGenerator()
+
+	s.Emitter.Send(NewManuscriptEvent(Manuscript{
+		EntityID: newEntityID,
+	}))
+
+	w.Header().Add("location", "/"+newEntityID)
+	w.WriteHeader(http.StatusCreated)
+
+}
+
+func (s *Server) getManuscript(w http.ResponseWriter, r *http.Request) {
+	entityID := mux.Vars(r)["entityID"]
+	version := r.URL.Query().Get("version")
+
+	var manuscript Manuscript
+
+	//todo: test this version stuff
+	if version != "" {
+		v, _ := strconv.Atoi(version)
+		m, _ := s.Repo.GetVersionedManuscript(entityID, v)
+		manuscript = m
+	} else {
+		manuscript = s.Repo.GetManuscript(entityID)
 	}
 
-	if r.Method == http.MethodGet {
-		version := r.URL.Query().Get("version")
+	manuscriptJSON, _ := json.Marshal(manuscript)
 
-		var manuscript Manuscript
-
-		//todo: test this version stuff
-		if version != "" {
-			v, _ := strconv.Atoi(version)
-			log.Println("getting version", v)
-			m, _ := s.Repo.GetVersionedManuscript(entityId, v)
-			manuscript = m
-		} else {
-			manuscript = s.Repo.GetManuscript(entityId)
-		}
-
-		manuscriptJSON, _ := json.Marshal(manuscript)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write(manuscriptJSON)
-	}
-
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(manuscriptJSON)
 }
