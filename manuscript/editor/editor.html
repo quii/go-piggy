@@ -1,0 +1,8 @@
+<h1>Manuscript : {{.EntityID}}</h1>
+<h2>Version : {{.Version}}</h2>
+
+<form method="post" action="{{.EntityID}}/events">
+    <label>Title</label><input type="text" name="title" value="{{.Title}}" /><br />
+    <label>Abstract</label><textarea name="abstract">{{.Abstract}}</textarea><br />
+    <input type="submit" value="Submit changes" />
+</form>

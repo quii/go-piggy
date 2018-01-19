@@ -2,6 +2,7 @@ package manuscript
 
 import (
 	"github.com/quii/go-piggy"
+	"log"
 	"regexp"
 )
 
@@ -35,6 +36,7 @@ func (p *Projection) listenForUpdates() {
 
 	for event := range events {
 		manuscript := p.versionedManuscripts.CurrentRevision(event.ID)
+		log.Println("Got event", event)
 		p.versionedManuscripts[event.ID] = append(p.versionedManuscripts[event.ID], manuscript.Update(event.Facts))
 	}
 }

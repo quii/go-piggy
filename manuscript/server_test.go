@@ -19,12 +19,12 @@ func TestItRaisesNewManuscriptEventOnPost(t *testing.T) {
 		withFixedEntityId("random-id"),
 	)
 
-	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/manuscripts", nil)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusCreated, response.Code)
-	assert.Equal(t, "/random-id", response.Header().Get("location"))
+	assert.Equal(t, "/manuscripts/random-id", response.Header().Get("location"))
 	assert.Contains(t, emitter.events, NewManuscriptEvent(Manuscript{
 		EntityID: "random-id",
 	}))
@@ -50,7 +50,8 @@ func TestItGetsManuscripts(t *testing.T) {
 		withFixedEntityId("random-id"),
 	)
 
-	request, _ := http.NewRequest(http.MethodGet, "/random-id", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/manuscripts/random-id", nil)
+	request.Header.Add("accept", "application/json")
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 
@@ -88,7 +89,8 @@ func TestItGetsVersionedManuscripts(t *testing.T) {
 		}),
 	)
 
-	request, _ := http.NewRequest(http.MethodGet, "/random-id?version=2", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/manuscripts/random-id?version=2", nil)
+	request.Header.Add("accept", "application/json")
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 
@@ -107,7 +109,9 @@ func TestIt404sForManuscriptsThatDontExist(t *testing.T) {
 		&fakeEmitter{},
 	)
 
-	request, _ := http.NewRequest(http.MethodGet, "/random-id?version=2", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/manuscripts/random-id?version=2", nil)
+	request.Header.Add("accept", "application/json")
+
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 
@@ -127,7 +131,8 @@ func TestItAddsEventsToExistingManuscripts(t *testing.T) {
 		{"OP":"SET", "Key":"Abstract", "Value": "Smith"}
 	]`
 
-	request, _ := http.NewRequest(http.MethodPost, "/random-id/events", strings.NewReader(eventJSON))
+	request, _ := http.NewRequest(http.MethodPost, "/manuscripts/random-id/events", strings.NewReader(eventJSON))
+	request.Header.Set("content-type", "application/json")
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 

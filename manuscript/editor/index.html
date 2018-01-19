@@ -1,0 +1,22 @@
+<html>
+<body>
+<h1>Manuscript editor</h1>
+<button id="create-manuscript">Create new manuscript</button>
+<p><a id="new-manuscript"></a></p>
+</body>
+<script>
+    const button = document.getElementById('create-manuscript')
+
+    button.addEventListener('click', () => {
+        return fetch('/manuscripts', {method: 'POST'})
+                .then(res => res.headers.get('location'))
+                .then(setNewManuscriptLink)
+    })
+
+    function setNewManuscriptLink (location) {
+        const link = document.getElementById('new-manuscript')
+        link.setAttribute('href', location)
+        link.textContent = 'New manuscript created at ' + location
+    }
+</script>
+</html>
