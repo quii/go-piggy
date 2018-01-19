@@ -151,6 +151,10 @@ type fakeManuscriptRepo struct {
 	manuscripts VersionedManuscripts
 }
 
+func (f *fakeManuscriptRepo) Events(entityID string) []go_piggy.Event {
+	panic("implement me")
+}
+
 func (f *fakeManuscriptRepo) Versions(entityID string) int {
 	panic("implement me")
 }

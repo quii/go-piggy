@@ -2,6 +2,7 @@ package manuscript
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/quii/go-piggy"
@@ -10,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"fmt"
 )
 
 //todo: i have totally ruined this file by hacking ;/
@@ -42,7 +42,6 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 	for _, op := range options {
 		op(s)
 	}
-
 
 	r := mux.NewRouter()
 
@@ -121,7 +120,7 @@ func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
 }
 
 //todo: testme
-func (s *Server) showEvents(w http.ResponseWriter, r *http.Request){
+func (s *Server) showEvents(w http.ResponseWriter, r *http.Request) {
 	entityID := entityIDFromRequest(r)
 	events := s.Repo.Events(entityID)
 

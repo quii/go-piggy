@@ -9,7 +9,7 @@ import (
 type Projection struct {
 	receiver             go_piggy.Receiver
 	versionedManuscripts VersionedManuscripts
-	events map[string][]go_piggy.Event
+	events               map[string][]go_piggy.Event
 }
 
 func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
@@ -25,7 +25,7 @@ func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
 }
 
 //todo: should probably be elsewhere
-func (p *Projection) Events(entityID string) []go_piggy.Event{
+func (p *Projection) Events(entityID string) []go_piggy.Event {
 	events, _ := p.events[entityID]
 	return events
 }
