@@ -9,8 +9,6 @@ import (
 	"strconv"
 )
 
-// deffo WIP, just experimenting with how this should all hang together
-
 type Repo interface {
 	GetManuscript(id string) Manuscript
 	GetVersionedManuscript(entityID string, version int) (Manuscript, error)
@@ -25,12 +23,6 @@ type Server struct {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.handler.ServeHTTP(w, r)
-}
-
-func WithEntityIdGenerator(f func() string) func(*Server) {
-	return func(server *Server) {
-		server.EntityIdGenerator = f
-	}
 }
 
 func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *Server {
@@ -53,8 +45,14 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 	return s
 }
 
+func WithEntityIdGenerator(f func() string) func(*Server) {
+	return func(server *Server) {
+		server.EntityIdGenerator = f
+	}
+}
+
 func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
-	entityID := mux.Vars(r)["entityID"]
+	entityID := entityIDFromRequest(r)
 
 	var facts []go_piggy.Fact
 
@@ -81,7 +79,7 @@ func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getManuscript(w http.ResponseWriter, r *http.Request) {
-	entityID := mux.Vars(r)["entityID"]
+	entityID := entityIDFromRequest(r)
 	version := r.URL.Query().Get("version")
 
 	var manuscript Manuscript
@@ -104,4 +102,8 @@ func (s *Server) getManuscript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(manuscriptJSON)
+}
+
+func entityIDFromRequest(r *http.Request) string {
+	return mux.Vars(r)["entityID"]
 }

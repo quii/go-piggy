@@ -10,47 +10,21 @@ import (
 	"testing"
 )
 
-type fakeManuscriptRepo struct {
-	manuscripts VersionedManuscripts
-}
-
-func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
-	return f.manuscripts.CurrentRevision(id)
-}
-
-func (f *fakeManuscriptRepo) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
-	return f.manuscripts.GetVersionedManuscript(entityID, version)
-}
-
-type fakeEmitter struct {
-	events []go_piggy.Event
-}
-
-func (f *fakeEmitter) Send(event go_piggy.Event) {
-	f.events = append(f.events, event)
-}
-
 func TestItRaisesNewManuscriptEventOnPost(t *testing.T) {
-	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-
-	repo := &fakeManuscriptRepo{}
 	emitter := &fakeEmitter{}
 
 	server := NewServer(
-		repo,
+		&fakeManuscriptRepo{},
 		emitter,
-		WithEntityIdGenerator(func() string {
-			return "random-id"
-		}),
+		withFixedEntityId("random-id"),
 	)
 
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	response := httptest.NewRecorder()
-
 	server.ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusCreated, response.Code)
 	assert.Equal(t, "/random-id", response.Header().Get("location"))
-
 	assert.Contains(t, emitter.events, NewManuscriptEvent(Manuscript{
 		EntityID: "random-id",
 	}))
@@ -70,19 +44,14 @@ func TestItGetsManuscripts(t *testing.T) {
 		},
 	}
 
-	emitter := &fakeEmitter{}
-
 	server := NewServer(
 		repo,
-		emitter,
-		WithEntityIdGenerator(func() string {
-			return "random-id"
-		}),
+		&fakeEmitter{},
+		withFixedEntityId("random-id"),
 	)
 
 	request, _ := http.NewRequest(http.MethodGet, "/random-id", nil)
 	response := httptest.NewRecorder()
-
 	server.ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusOK, response.Code)
@@ -111,11 +80,9 @@ func TestItGetsVersionedManuscripts(t *testing.T) {
 		},
 	}
 
-	emitter := &fakeEmitter{}
-
 	server := NewServer(
 		repo,
-		emitter,
+		&fakeEmitter{},
 		WithEntityIdGenerator(func() string {
 			return "random-id"
 		}),
@@ -134,13 +101,10 @@ func TestItGetsVersionedManuscripts(t *testing.T) {
 	assert.Equal(t, manuscriptV2, receivedManuscript)
 }
 
-func TestIt404sForVersionsThatDontExist(t *testing.T) {
-	repo := &fakeManuscriptRepo{}
-	emitter := &fakeEmitter{}
-
+func TestIt404sForManuscriptsThatDontExist(t *testing.T) {
 	server := NewServer(
-		repo,
-		emitter,
+		&fakeManuscriptRepo{},
+		&fakeEmitter{},
 	)
 
 	request, _ := http.NewRequest(http.MethodGet, "/random-id?version=2", nil)
@@ -151,11 +115,10 @@ func TestIt404sForVersionsThatDontExist(t *testing.T) {
 }
 
 func TestItAddsEventsToExistingManuscripts(t *testing.T) {
-	repo := &fakeManuscriptRepo{}
 	emitter := &fakeEmitter{}
 
 	server := NewServer(
-		repo,
+		&fakeManuscriptRepo{},
 		emitter,
 	)
 
@@ -166,7 +129,6 @@ func TestItAddsEventsToExistingManuscripts(t *testing.T) {
 
 	request, _ := http.NewRequest(http.MethodPost, "/random-id/events", strings.NewReader(eventJSON))
 	response := httptest.NewRecorder()
-
 	server.ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusAccepted, response.Code)
@@ -177,5 +139,31 @@ func TestItAddsEventsToExistingManuscripts(t *testing.T) {
 			TitleChanged("Bob"),
 			AbstractChanged("Smith"),
 		},
+	})
+}
+
+type fakeManuscriptRepo struct {
+	manuscripts VersionedManuscripts
+}
+
+func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
+	return f.manuscripts.CurrentRevision(id)
+}
+
+func (f *fakeManuscriptRepo) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
+	return f.manuscripts.GetVersionedManuscript(entityID, version)
+}
+
+type fakeEmitter struct {
+	events []go_piggy.Event
+}
+
+func (f *fakeEmitter) Send(event go_piggy.Event) {
+	f.events = append(f.events, event)
+}
+
+func withFixedEntityId(id string) func(*Server) {
+	return WithEntityIdGenerator(func() string {
+		return id
 	})
 }
