@@ -40,9 +40,9 @@ func TestItRaisesNewManuscriptEventOnPost(t *testing.T) {
 	server := NewServer(
 		repo,
 		emitter,
-		func() string {
+		WithEntityIdGenerator(func() string {
 			return "random-id"
-		},
+		}),
 	)
 
 	response := httptest.NewRecorder()
@@ -76,9 +76,9 @@ func TestItGetsManuscripts(t *testing.T) {
 	server := NewServer(
 		repo,
 		emitter,
-		func() string {
+		WithEntityIdGenerator(func() string {
 			return "random-id"
-		},
+		}),
 	)
 
 	request, _ := http.NewRequest(http.MethodGet, "/random-id", nil)

@@ -12,15 +12,11 @@ func main() {
 
 	projector := manuscript.NewProjection(eventSource)
 
-	server := manuscript.Server{
-		Repo:              projector,
-		Emitter:           eventSource,
-		EntityIdGenerator: go_piggy.RandomID,
-	}
+	server := manuscript.NewServer(projector, eventSource)
 
 	log.Println("Listening on 8080")
 
-	if err := http.ListenAndServe(":8080", &server); err != nil {
+	if err := http.ListenAndServe(":8080", server); err != nil {
 		log.Fatalf("Couldn't start server %s", err)
 	}
 }

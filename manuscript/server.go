@@ -27,12 +27,21 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.handler.ServeHTTP(w, r)
 }
 
-//todo: entityIdGenerator should be an option with sensible default
-func NewServer(repo Repo, emitter go_piggy.Emitter, entityIdGenerator func() string) *Server {
+func WithEntityIdGenerator(f func() string) func(*Server) {
+	return func(server *Server) {
+		server.EntityIdGenerator = f
+	}
+}
+
+func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *Server {
 	s := new(Server)
 	s.Repo = repo
 	s.Emitter = emitter
-	s.EntityIdGenerator = entityIdGenerator
+	s.EntityIdGenerator = go_piggy.RandomID
+
+	for _, op := range options {
+		op(s)
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/{entityID}", s.getManuscript)
