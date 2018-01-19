@@ -2,26 +2,24 @@ package manuscript
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/quii/go-piggy"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"strings"
+	"testing"
 )
 
 type fakeManuscriptRepo struct {
-	manuscripts map[string]Manuscript
+	manuscripts VersionedManuscripts
 }
 
 func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
-	man, _ := f.manuscripts[id]
-	return man
+	return f.manuscripts.CurrentRevision(id)
 }
 
 func (f *fakeManuscriptRepo) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
-	return Manuscript{}, fmt.Errorf("haven't made this yet...")
+	return f.manuscripts.GetVersionedManuscript(entityID, version)
 }
 
 type fakeEmitter struct {
@@ -67,8 +65,8 @@ func TestItGetsManuscripts(t *testing.T) {
 	}
 
 	repo := &fakeManuscriptRepo{
-		manuscripts: map[string]Manuscript{
-			"random-id": manuscript,
+		manuscripts: map[string][]Manuscript{
+			"random-id": {manuscript},
 		},
 	}
 
@@ -94,6 +92,62 @@ func TestItGetsManuscripts(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, manuscript, receivedManuscript)
+}
+
+func TestItGetsVersionedManuscripts(t *testing.T) {
+	manuscriptV1 := Manuscript{
+		EntityID: "random-id",
+		Title:    "Pepper pot",
+		Abstract: "Is a cat from egypt",
+		Authors:  nil,
+	}
+
+	manuscriptV2 := manuscriptV1
+	manuscriptV2.Title = "new title"
+
+	repo := &fakeManuscriptRepo{
+		manuscripts: map[string][]Manuscript{
+			"random-id": {manuscriptV1, manuscriptV2},
+		},
+	}
+
+	emitter := &fakeEmitter{}
+
+	server := NewServer(
+		repo,
+		emitter,
+		WithEntityIdGenerator(func() string {
+			return "random-id"
+		}),
+	)
+
+	request, _ := http.NewRequest(http.MethodGet, "/random-id?version=2", nil)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusOK, response.Code)
+
+	receivedManuscript := Manuscript{}
+	err := json.Unmarshal(response.Body.Bytes(), &receivedManuscript)
+
+	assert.NoError(t, err)
+	assert.Equal(t, manuscriptV2, receivedManuscript)
+}
+
+func TestIt404sForVersionsThatDontExist(t *testing.T) {
+	repo := &fakeManuscriptRepo{}
+	emitter := &fakeEmitter{}
+
+	server := NewServer(
+		repo,
+		emitter,
+	)
+
+	request, _ := http.NewRequest(http.MethodGet, "/random-id?version=2", nil)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusNotFound, response.Code)
 }
 
 func TestItAddsEventsToExistingManuscripts(t *testing.T) {

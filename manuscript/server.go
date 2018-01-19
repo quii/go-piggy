@@ -86,13 +86,17 @@ func (s *Server) getManuscript(w http.ResponseWriter, r *http.Request) {
 
 	var manuscript Manuscript
 
-	//todo: test this version stuff
 	if version != "" {
 		v, _ := strconv.Atoi(version)
 		m, _ := s.Repo.GetVersionedManuscript(entityID, v)
 		manuscript = m
 	} else {
 		manuscript = s.Repo.GetManuscript(entityID)
+	}
+
+	if manuscript.EntityID == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	manuscriptJSON, _ := json.Marshal(manuscript)

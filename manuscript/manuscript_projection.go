@@ -1,7 +1,6 @@
 package manuscript
 
 import (
-	"fmt"
 	"github.com/quii/go-piggy"
 	"regexp"
 )
@@ -22,23 +21,13 @@ func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
 	return
 }
 
+// are these two functions really needed? perhaps a simpler design exists
 func (p *Projection) GetManuscript(entityID string) Manuscript {
 	return p.versionedManuscripts.CurrentRevision(entityID)
 }
 
-//todo: testme
 func (p *Projection) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
-	versions, exists := p.versionedManuscripts[entityID]
-
-	if !exists {
-		return Manuscript{}, fmt.Errorf("manuscript %s does not exist", entityID)
-	}
-
-	if len(versions) < version {
-		return Manuscript{}, fmt.Errorf("manuscript version %d of %s does not exist", version, entityID)
-	}
-
-	return versions[version-1], nil
+	return p.versionedManuscripts.GetVersionedManuscript(entityID, version)
 }
 
 func (p *Projection) listenForUpdates() {
