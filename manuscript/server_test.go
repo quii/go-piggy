@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"strings"
 )
 
 type fakeManuscriptRepo struct {
@@ -93,4 +94,34 @@ func TestItGetsManuscripts(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, manuscript, receivedManuscript)
+}
+
+func TestItAddsEventsToExistingManuscripts(t *testing.T) {
+	repo := &fakeManuscriptRepo{}
+	emitter := &fakeEmitter{}
+
+	server := NewServer(
+		repo,
+		emitter,
+	)
+
+	eventJSON := `[
+		{"OP":"SET", "Key":"Title", "Value": "Bob"},
+		{"OP":"SET", "Key":"Abstract", "Value": "Smith"}
+	]`
+
+	request, _ := http.NewRequest(http.MethodPost, "/random-id/events", strings.NewReader(eventJSON))
+	response := httptest.NewRecorder()
+
+	server.ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusAccepted, response.Code)
+	assert.Contains(t, emitter.events, go_piggy.Event{
+		ID:   "random-id",
+		Type: "manuscript",
+		Facts: []go_piggy.Fact{
+			TitleChanged("Bob"),
+			AbstractChanged("Smith"),
+		},
+	})
 }

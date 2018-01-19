@@ -46,7 +46,7 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 	r := mux.NewRouter()
 	r.HandleFunc("/{entityID}", s.getManuscript)
 	r.HandleFunc("/", s.createManuscript).Methods("POST")
-	r.HandleFunc("/{entityID}", s.addEventsToManuscript).Methods("POST")
+	r.HandleFunc("/{entityID}/events", s.addEventsToManuscript).Methods("POST")
 
 	s.handler = r
 
@@ -64,6 +64,8 @@ func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &facts)
 
 	s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
+
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
