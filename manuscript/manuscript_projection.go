@@ -9,6 +9,7 @@ import (
 type Projection struct {
 	receiver             go_piggy.Receiver
 	versionedManuscripts VersionedManuscripts
+	events map[string][]go_piggy.Event
 }
 
 func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
@@ -16,10 +17,17 @@ func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
 	m = new(Projection)
 	m.receiver = receiver
 	m.versionedManuscripts = make(VersionedManuscripts)
+	m.events = make(map[string][]go_piggy.Event)
 
 	go m.listenForUpdates()
 
 	return
+}
+
+//todo: should probably be elsewhere
+func (p *Projection) Events(entityID string) []go_piggy.Event{
+	events, _ := p.events[entityID]
+	return events
 }
 
 // are these two functions really needed? perhaps a simpler design exists
@@ -39,8 +47,11 @@ func (p *Projection) listenForUpdates() {
 	events := p.receiver.Listen(0)
 
 	for event := range events {
-		manuscript := p.versionedManuscripts.CurrentRevision(event.ID)
 		log.Println("Got event", event)
+
+		manuscript := p.versionedManuscripts.CurrentRevision(event.ID)
+		pastEvents, _ := p.events[event.ID]
+		p.events[event.ID] = append(pastEvents, event)
 		p.versionedManuscripts[event.ID] = append(p.versionedManuscripts[event.ID], manuscript.Update(event.Facts))
 	}
 }

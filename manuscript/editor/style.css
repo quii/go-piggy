@@ -1,0 +1,50 @@
+body{
+    font-size: 1.2em;
+    font-family: monospace;
+    background-color: #eee;
+    display:flex;
+    flex-wrap: wrap;
+    max-width: 950px;
+    margin: auto;
+}
+
+main{
+    min-width: 310px;
+    width:64%;
+}
+
+aside{
+    padding: 1em 0;
+    width:25%;
+    margin-left: 10%;
+}
+
+aside ol {
+    padding: 0;
+    margin:0 0 0 15px;
+}
+aside li {
+    list-style: square;
+    margin: 10px 0;
+    padding:0;
+}
+
+label{
+    display: block;
+    width:20%;
+}
+
+input, textarea {
+    font-family: monospace;
+    width:100%;
+    padding:2%;
+    font-size: 1.2em;
+}
+
+textarea{
+    height: 400px;
+}
+
+input[type="submit"]{
+    width:auto;
+}

@@ -10,12 +10,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"fmt"
 )
+
+//todo: i have totally ruined this file by hacking ;/
 
 type Repo interface {
 	GetManuscript(id string) Manuscript
 	GetVersionedManuscript(entityID string, version int) (Manuscript, error)
 	Versions(entityID string) int
+	Events(entityID string) []go_piggy.Event
 }
 
 type Server struct {
@@ -39,17 +43,18 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 		op(s)
 	}
 
-	staticEditor := http.FileServer(http.Dir("manuscript/editor"))
 
 	r := mux.NewRouter()
+
 	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON).Headers("accept", "application/json")
 	r.HandleFunc("/manuscripts/{entityID}", s.manuscriptEditor)
 
 	r.HandleFunc("/manuscripts", s.createManuscript).Methods("POST")
 
 	r.HandleFunc("/manuscripts/{entityID}/events", s.addEventsToManuscript).Methods("POST")
+	r.HandleFunc("/manuscripts/{entityID}/events", s.showEvents).Methods("GET")
 
-	r.Handle("/", staticEditor)
+	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("manuscript/editor"))))
 
 	s.handler = handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
@@ -65,8 +70,10 @@ func WithEntityIdGenerator(f func() string) func(*Server) {
 	}
 }
 
+//todo: this is so horrible
 func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 	entityID := entityIDFromRequest(r)
+	manuscript := s.Repo.GetManuscript(entityID)
 
 	var facts []go_piggy.Fact
 
@@ -79,10 +86,20 @@ func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		r.ParseForm()
-		facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Title", Value: r.Form.Get("title")})
-		facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Abstract", Value: r.Form.Get("abstract")})
+
+		newTitle := r.Form.Get("title")
+		newAbstract := r.Form.Get("abstract")
+
+		if newTitle != manuscript.Title {
+			facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Title", Value: newTitle})
+		}
+
+		if newAbstract != manuscript.Abstract {
+			facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Abstract", Value: newAbstract})
+		}
+
 		s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
-		w.Header().Add("location", "/manuscripts/"+entityID)
+		w.Header().Add("location", fmt.Sprintf("/manuscripts/%s?version=%d", entityID, manuscript.Version+1))
 		w.WriteHeader(http.StatusSeeOther)
 	}
 
@@ -101,6 +118,17 @@ func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Expose-Headers", "Location")
 	w.WriteHeader(http.StatusCreated)
 
+}
+
+//todo: testme
+func (s *Server) showEvents(w http.ResponseWriter, r *http.Request){
+	entityID := entityIDFromRequest(r)
+	events := s.Repo.Events(entityID)
+
+	eventsAsJSON, _ := json.Marshal(events)
+
+	w.Header().Set("content-type", "application/json")
+	w.Write(eventsAsJSON)
 }
 
 func (s *Server) manuscriptEditor(w http.ResponseWriter, r *http.Request) {
