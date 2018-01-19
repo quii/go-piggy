@@ -18,10 +18,10 @@ Clone into `$GOPATH/src/github.com/quii` as usual for Go projects
 
 ### Tentative next steps
 
-- PATCH documents.
-- Finish off versioning code, tests and then expose over HTTP
 - Make a manuscript viewer. Be able to view different versions
-    - Make a flashy JS version with a slider
+    - It's a right mess!
+    - Needs CSS
+    - Version number stuff is confusing to use still
 - Metadata on events, `author`, `datetime`, `notes`    
 - Create a db backed event source (maybe bolt db for fun)
 - Improve naming to be more like how Young describes (https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf)

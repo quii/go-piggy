@@ -1,13 +1,12 @@
 <h1>Manuscript : {{.EntityID}}</h1>
 <h2>Version : {{.Version}}</h2>
+<h3>Title: {{.Title}}</h3>
+<h4>Abstract</h4>
+<p>{{.Abstract}}</p>
 
-<form method="post" action="{{.EntityID}}/events">
-    <label>Title</label><input type="text" name="title" value="{{.Title}}"/><br/>
-    <label>Abstract</label><textarea name="abstract">{{.Abstract}}</textarea><br/>
-    <input type="submit" value="Submit changes"/>
-</form>
-
-<ol id="versions"></ol>
+<ol id="versions">
+    <li><a href="/manuscripts/{{.EntityID}}">Create new version</a></li>
+</ol>
 
 <script>
     const versionList = document.getElementById('versions');
@@ -20,3 +19,4 @@
         versionList.appendChild(li)
     }
 </script>
+

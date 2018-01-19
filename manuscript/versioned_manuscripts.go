@@ -31,3 +31,8 @@ func (v VersionedManuscripts) GetVersionedManuscript(entityID string, version in
 
 	return versions[version-1], nil
 }
+
+func (v VersionedManuscripts) Versions(entityID string) int {
+	versions, _ := v[entityID]
+	return len(versions)
+}

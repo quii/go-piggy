@@ -31,6 +31,10 @@ func (p *Projection) GetVersionedManuscript(entityID string, version int) (Manus
 	return p.versionedManuscripts.GetVersionedManuscript(entityID, version)
 }
 
+func (p *Projection) Versions(entityID string) int {
+	return p.versionedManuscripts.Versions(entityID)
+}
+
 func (p *Projection) listenForUpdates() {
 	events := p.receiver.Listen(0)
 

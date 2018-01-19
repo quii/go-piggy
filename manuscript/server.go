@@ -15,6 +15,7 @@ import (
 type Repo interface {
 	GetManuscript(id string) Manuscript
 	GetVersionedManuscript(entityID string, version int) (Manuscript, error)
+	Versions(entityID string) int
 }
 
 type Server struct {
@@ -42,7 +43,7 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 
 	r := mux.NewRouter()
 	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON).Headers("accept", "application/json")
-	r.HandleFunc("/manuscripts/{entityID}", s.manuscriptForm)
+	r.HandleFunc("/manuscripts/{entityID}", s.manuscriptEditor)
 
 	r.HandleFunc("/manuscripts", s.createManuscript).Methods("POST")
 
@@ -78,7 +79,6 @@ func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		r.ParseForm()
-		log.Println(r.Form)
 		facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Title", Value: r.Form.Get("title")})
 		facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Abstract", Value: r.Form.Get("abstract")})
 		s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
@@ -103,16 +103,41 @@ func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s *Server) manuscriptForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) manuscriptEditor(w http.ResponseWriter, r *http.Request) {
 	entityID := entityIDFromRequest(r)
-	manuscript := s.Repo.GetManuscript(entityID)
+	version := r.URL.Query().Get("version")
 
-	t, err := template.ParseFiles("manuscript/editor/editor.html")
-	if err != nil {
-		log.Fatal("Problem parsing template", err)
+	if version != "" {
+		v, _ := strconv.Atoi(version)
+		manuscript, _ := s.Repo.GetVersionedManuscript(entityID, v)
+
+		t, err := template.ParseFiles("manuscript/editor/viewer.html")
+		if err != nil {
+			log.Fatal("Problem parsing template", err)
+		}
+
+		vm := struct {
+			Manuscript
+			VersionCount int
+		}{manuscript, s.Repo.Versions(entityID)}
+
+		t.Execute(w, vm)
+
+	} else {
+		manuscript := s.Repo.GetManuscript(entityID)
+
+		t, err := template.ParseFiles("manuscript/editor/editor.html")
+		if err != nil {
+			log.Fatal("Problem parsing template", err)
+		}
+
+		vm := struct {
+			Manuscript
+			VersionCount int
+		}{manuscript, s.Repo.Versions(entityID)}
+
+		t.Execute(w, vm)
 	}
-
-	t.Execute(w, manuscript)
 }
 
 func (s *Server) getManuscriptJSON(w http.ResponseWriter, r *http.Request) {

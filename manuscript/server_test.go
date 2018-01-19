@@ -151,6 +151,10 @@ type fakeManuscriptRepo struct {
 	manuscripts VersionedManuscripts
 }
 
+func (f *fakeManuscriptRepo) Versions(entityID string) int {
+	panic("implement me")
+}
+
 func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
 	return f.manuscripts.CurrentRevision(id)
 }
