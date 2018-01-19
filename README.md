@@ -21,7 +21,7 @@ Clone into `$GOPATH/src/github.com/quii` as usual for Go projects
 - Make a manuscript viewer. Be able to view different versions
     - It's a right mess!
     - Needs CSS
-    - Version number stuff is confusing to use still
+    - Version number stuff is confusing to use. Add a proper view model (projection?) with author, date & time to really elevate the time-ness
 - Metadata on events, `author`, `datetime`, `notes`    
 - Create a db backed event source (maybe bolt db for fun)
 - Improve naming to be more like how Young describes (https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf)

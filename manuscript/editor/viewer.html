@@ -4,17 +4,18 @@
 <h4>Abstract</h4>
 <p>{{.Abstract}}</p>
 
-<ol id="versions">
+<hr/>
+<ol id="versions" reversed>
     <li><a href="/manuscripts/{{.EntityID}}">Create new version</a></li>
 </ol>
 
 <script>
-    const versionList = document.getElementById('versions');
-    for(i=1; i<{{.VersionCount}}; i++) {
-        const li = document.createElement('li');
+    const versionList = document.getElementById('versions')
+    for (i ={{.VersionCount}}; i > 0; i--) {
+        const li = document.createElement('li')
         const a = document.createElement('a')
         a.setAttribute('href', '?version=' + i)
-        a.text = i
+        a.text = 'version ' + i
         li.appendChild(a)
         versionList.appendChild(li)
     }
