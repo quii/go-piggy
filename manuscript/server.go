@@ -2,11 +2,8 @@ package manuscript
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/quii/go-piggy"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,20 +42,12 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON).Headers("accept", "application/json")
-	r.HandleFunc("/manuscripts/{entityID}", s.manuscriptEditor)
-
+	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON)
 	r.HandleFunc("/manuscripts", s.createManuscript).Methods("POST")
-
 	r.HandleFunc("/manuscripts/{entityID}/events", s.addEventsToManuscript).Methods("POST")
 	r.HandleFunc("/manuscripts/{entityID}/events", s.showEvents).Methods("GET")
 
-	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("manuscript/editor"))))
-
-	s.handler = handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowedHeaders([]string{"Location"}),
-	)(r)
+	s.handler = r
 
 	return s
 }
@@ -69,39 +58,16 @@ func WithEntityIdGenerator(f func() string) func(*Server) {
 	}
 }
 
-//todo: this is so horrible
 func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 	entityID := entityIDFromRequest(r)
-	manuscript := s.Repo.GetManuscript(entityID)
 
 	var facts []go_piggy.Fact
 
-	if r.Header.Get("content-type") == "application/json" {
-		body, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
-		json.Unmarshal(body, &facts)
-		s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
-		w.WriteHeader(http.StatusAccepted)
-
-	} else {
-		r.ParseForm()
-
-		newTitle := r.Form.Get("title")
-		newAbstract := r.Form.Get("abstract")
-
-		if newTitle != manuscript.Title {
-			facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Title", Value: newTitle})
-		}
-
-		if newAbstract != manuscript.Abstract {
-			facts = append(facts, go_piggy.Fact{Op: "SET", Key: "Abstract", Value: newAbstract})
-		}
-
-		s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
-		w.Header().Add("location", fmt.Sprintf("/manuscripts/%s?version=%d", entityID, manuscript.Version+1))
-		w.WriteHeader(http.StatusSeeOther)
-	}
-
+	body, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	json.Unmarshal(body, &facts)
+	s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
@@ -128,43 +94,6 @@ func (s *Server) showEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "application/json")
 	w.Write(eventsAsJSON)
-}
-
-func (s *Server) manuscriptEditor(w http.ResponseWriter, r *http.Request) {
-	entityID := entityIDFromRequest(r)
-	version := r.URL.Query().Get("version")
-
-	if version != "" {
-		v, _ := strconv.Atoi(version)
-		manuscript, _ := s.Repo.GetVersionedManuscript(entityID, v)
-
-		t, err := template.ParseFiles("manuscript/editor/viewer.html")
-		if err != nil {
-			log.Fatal("Problem parsing template", err)
-		}
-
-		vm := struct {
-			Manuscript
-			VersionCount int
-		}{manuscript, s.Repo.Versions(entityID)}
-
-		t.Execute(w, vm)
-
-	} else {
-		manuscript := s.Repo.GetManuscript(entityID)
-
-		t, err := template.ParseFiles("manuscript/editor/editor.html")
-		if err != nil {
-			log.Fatal("Problem parsing template", err)
-		}
-
-		vm := struct {
-			Manuscript
-			VersionCount int
-		}{manuscript, s.Repo.Versions(entityID)}
-
-		t.Execute(w, vm)
-	}
 }
 
 func (s *Server) getManuscriptJSON(w http.ResponseWriter, r *http.Request) {
