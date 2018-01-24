@@ -42,10 +42,12 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 
 	r := mux.NewRouter()
 
+
 	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON)
 	r.HandleFunc("/manuscripts", s.createManuscript).Methods("POST")
 	r.HandleFunc("/manuscripts/{entityID}/events", s.addEventsToManuscript).Methods("POST")
 	r.HandleFunc("/manuscripts/{entityID}/events", s.showEvents).Methods("GET")
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./webapp/build/")))
 
 	s.handler = r
 
