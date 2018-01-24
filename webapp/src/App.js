@@ -1,43 +1,50 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, { Component } from 'react'
+import './App.css'
 
-import {
-  BrowserRouter as Router,
-  Route,
-  Link
-} from 'react-router-dom'
+import { BrowserRouter as Router, Link, Route } from 'react-router-dom'
 
 class App extends Component {
-  render() {
+  render () {
     return (
-      <div className="App">
-        <header className="App-header">
-        <h1 className="App-title">Welcome to go-piggy</h1>
-        </header>
-        <main>
-          <Router>
-            <div>
-              <Route exact path="/" component={Home}/>
-              <Route path="/manuscripts/:entityId" component={Manuscript}/>
-            </div>
-          </Router>
-        </main>
-      </div>
-    );
+      <Router>
+        <div>
+          <header>
+            <h1><Link to="/">Welcome to go-piggy</Link></h1>
+            <nav>
+              <ul>
+                <li><Link to="/new-manuscript">Create new manuscript</Link></li>
+                <li><Link to="/manuscripts/cj-rules">/manuscript/cj-rules</Link></li>
+              </ul>
+            </nav>
+          </header>
+
+          <main>
+            <Route exact path="/" component={Home}/>
+            <Route path="/manuscripts/:entityId" component={ViewManuscript}/>
+            <Route path="/new-manuscript" component={CreateManuscript}/>
+          </main>
+        </div>
+      </Router>
+    )
   }
 }
 
 const Home = () => (
   <div>
     <h3>Home</h3>
-    <p>Try <Link to="/manuscripts/cj-rules">/manuscript/cj-rules</Link></p>
   </div>
 )
 
-const Manuscript = ({ match }) => (
+const ViewManuscript = ({match}) => (
   <div>
     <h3>Manuscript {match.params.entityId}</h3>
   </div>
 )
 
-export default App;
+const CreateManuscript = ({match}) => (
+  <div>
+    <h3>I will create a manuscript...</h3>
+  </div>
+)
+
+export default App
