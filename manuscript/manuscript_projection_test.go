@@ -20,7 +20,8 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 	eventSource.Send(NewManuscriptEvent(manuscript1))
 	eventSource.Send(NewManuscriptEvent(manuscript2))
 
-	projection, changes := NewProjection(eventSource)
+	changes := make(chan int, 1)
+	projection := NewProjection(eventSource, &ProjectionOptions{changes})
 
 	waitForManuscriptVersion(t, 2, changes)
 
@@ -41,7 +42,8 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 	eventSource := &go_piggy.InMemorySource{}
 	eventSource.Send(NewManuscriptEvent(manuscript))
 
-	projection, changes := NewProjection(eventSource)
+	changes := make(chan int, 1)
+	projection := NewProjection(eventSource, &ProjectionOptions{changes})
 
 	waitForManuscriptVersion(t, 1, changes)
 
@@ -69,7 +71,8 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("Fill yourself with quarters")))
 	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("lol")))
 
-	projection, changes := NewProjection(eventSource)
+	changes := make(chan int, 1)
+	projection := NewProjection(eventSource, &ProjectionOptions{changes})
 
 	waitForManuscriptVersion(t, 5, changes)
 
@@ -100,7 +103,8 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 	eventSource.Send(NewManuscriptChangesEvent(manuscript, AuthorsSet(0, "CJ")))
 	eventSource.Send(NewManuscriptChangesEvent(manuscript, AuthorsSet(1, "TV")))
 
-	projection, changes := NewProjection(eventSource)
+	changes := make(chan int, 1)
+	projection := NewProjection(eventSource, &ProjectionOptions{changes})
 
 	waitForManuscriptVersion(t, 3, changes)
 

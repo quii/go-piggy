@@ -11,20 +11,25 @@ type Projection struct {
 	events               map[string][]go_piggy.Event
 	changes              chan int
 	version              int
+	options              *ProjectionOptions
 }
 
-//todo: changes should be provided by consumer as an optional thing
-func NewProjection(receiver go_piggy.Receiver) (m *Projection, changes chan int) {
+type ProjectionOptions struct {
+	VersionChanges chan int
+}
+
+func NewProjection(receiver go_piggy.Receiver, options *ProjectionOptions) (m *Projection) {
 
 	m = new(Projection)
 	m.receiver = receiver
 	m.changes = make(chan int, 1)
 	m.versionedManuscripts = make(VersionedManuscripts)
 	m.events = make(map[string][]go_piggy.Event)
+	m.options = options
 
 	go m.listenForUpdates()
 
-	return m, m.changes
+	return m
 }
 
 //todo: should probably be elsewhere
@@ -56,7 +61,9 @@ func (p *Projection) listenForUpdates() {
 		p.versionedManuscripts[event.ID] = append(p.versionedManuscripts[event.ID], manuscript.Update(event.Facts))
 
 		p.version++
-		p.changes <- p.version
+		if p.options != nil {
+			p.options.VersionChanges <- p.version
+		}
 	}
 }
 
