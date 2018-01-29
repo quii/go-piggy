@@ -20,9 +20,9 @@ func TestItAddsManuscriptsAsTheyAreAdded(t *testing.T) {
 	eventSource.Send(NewManuscriptEvent(manuscript1))
 	eventSource.Send(NewManuscriptEvent(manuscript2))
 
-	projection := NewProjection(eventSource)
+	projection, changes := NewProjection(eventSource)
 
-	time.Sleep(5 * time.Millisecond) //todo: bleh
+	waitForManuscriptVersion(t, 2, changes)
 
 	assert.Len(t, projection.versionedManuscripts, 2)
 	assert.Contains(t, projection.versionedManuscripts, manuscript1.EntityID)
@@ -41,9 +41,9 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 	eventSource := &go_piggy.InMemorySource{}
 	eventSource.Send(NewManuscriptEvent(manuscript))
 
-	projection := NewProjection(eventSource)
+	projection, changes := NewProjection(eventSource)
 
-	time.Sleep(5 * time.Millisecond) //todo: bleh
+	waitForManuscriptVersion(t, 1, changes)
 
 	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
 
@@ -69,8 +69,9 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("Fill yourself with quarters")))
 	eventSource.Send(NewManuscriptChangesEvent(man2, TitleChanged("lol")))
 
-	projection := NewProjection(eventSource)
-	time.Sleep(5 * time.Millisecond) //todo: bleh
+	projection, changes := NewProjection(eventSource)
+
+	waitForManuscriptVersion(t, 5, changes)
 
 	expectedMan1State := Manuscript{
 		EntityID: man1.EntityID,
@@ -99,9 +100,9 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 	eventSource.Send(NewManuscriptChangesEvent(manuscript, AuthorsSet(0, "CJ")))
 	eventSource.Send(NewManuscriptChangesEvent(manuscript, AuthorsSet(1, "TV")))
 
-	projection := NewProjection(eventSource)
+	projection, changes := NewProjection(eventSource)
 
-	time.Sleep(5 * time.Millisecond) //todo: bleh
+	waitForManuscriptVersion(t, 3, changes)
 
 	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
 
@@ -112,4 +113,14 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 func (p *Projection) manuscriptExists(id string) bool {
 	_, exists := p.versionedManuscripts[id]
 	return exists
+}
+
+func waitForManuscriptVersion(t *testing.T, version int, changes chan int) {
+	for i := 0; i < version; i++ {
+		select {
+		case <-changes:
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for changes")
+		}
+	}
 }

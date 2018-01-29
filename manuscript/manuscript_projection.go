@@ -2,7 +2,6 @@ package manuscript
 
 import (
 	"github.com/quii/go-piggy"
-	"log"
 	"regexp"
 )
 
@@ -10,18 +9,22 @@ type Projection struct {
 	receiver             go_piggy.Receiver
 	versionedManuscripts VersionedManuscripts
 	events               map[string][]go_piggy.Event
+	changes              chan int
+	version              int
 }
 
-func NewProjection(receiver go_piggy.Receiver) (m *Projection) {
+//todo: changes should be provided by consumer as an optional thing
+func NewProjection(receiver go_piggy.Receiver) (m *Projection, changes chan int) {
 
 	m = new(Projection)
 	m.receiver = receiver
+	m.changes = make(chan int, 1)
 	m.versionedManuscripts = make(VersionedManuscripts)
 	m.events = make(map[string][]go_piggy.Event)
 
 	go m.listenForUpdates()
 
-	return
+	return m, m.changes
 }
 
 //todo: should probably be elsewhere
@@ -47,12 +50,13 @@ func (p *Projection) listenForUpdates() {
 	events := p.receiver.Listen(0)
 
 	for event := range events {
-		log.Println("Got event", event)
-
 		manuscript := p.versionedManuscripts.CurrentRevision(event.ID)
 		pastEvents, _ := p.events[event.ID]
 		p.events[event.ID] = append(pastEvents, event)
 		p.versionedManuscripts[event.ID] = append(p.versionedManuscripts[event.ID], manuscript.Update(event.Facts))
+
+		p.version++
+		p.changes <- p.version
 	}
 }
 

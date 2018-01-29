@@ -10,7 +10,7 @@ import (
 func main() {
 	eventSource := go_piggy.NewInMemoryEventSource()
 
-	projector := manuscript.NewProjection(eventSource)
+	projector, _ := manuscript.NewProjection(eventSource)
 
 	server := manuscript.NewServer(projector, eventSource)
 
