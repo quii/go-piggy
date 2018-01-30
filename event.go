@@ -3,8 +3,9 @@ package go_piggy
 import "github.com/twinj/uuid"
 
 type Event struct {
-	ID, Type string
-	Facts    []Fact
+	Name           string
+	EntityID, Type string
+	Facts          []Fact
 }
 
 type Fact struct {
@@ -17,8 +18,9 @@ func RandomID() string {
 
 func RandomEvent() Event {
 	return Event{
-		ID:    RandomID(),
-		Type:  "random" + RandomID(),
-		Facts: nil,
+		Name:     "name-" + RandomID(),
+		EntityID: "id-" + RandomID(),
+		Type:     "random" + RandomID(),
+		Facts:    nil,
 	}
 }

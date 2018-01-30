@@ -67,7 +67,7 @@ func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	json.Unmarshal(body, &facts)
-	s.Emitter.Send(NewManuscriptChangesEvent(Manuscript{EntityID: entityID}, facts...))
+	s.Emitter.Send(NewManuscriptVersionEvent(Manuscript{EntityID: entityID}, facts...))
 	w.WriteHeader(http.StatusAccepted)
 }
 

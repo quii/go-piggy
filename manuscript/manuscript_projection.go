@@ -55,10 +55,10 @@ func (p *Projection) listenForUpdates() {
 	events := p.receiver.Listen(0)
 
 	for event := range events {
-		manuscript := p.versionedManuscripts.CurrentRevision(event.ID)
-		pastEvents, _ := p.events[event.ID]
-		p.events[event.ID] = append(pastEvents, event)
-		p.versionedManuscripts[event.ID] = append(p.versionedManuscripts[event.ID], manuscript.Update(event.Facts))
+		manuscript := p.versionedManuscripts.CurrentRevision(event.EntityID)
+		pastEvents, _ := p.events[event.EntityID]
+		p.events[event.EntityID] = append(pastEvents, event)
+		p.versionedManuscripts[event.EntityID] = append(p.versionedManuscripts[event.EntityID], manuscript.Update(event.Facts))
 
 		p.version++
 		if p.options != nil {

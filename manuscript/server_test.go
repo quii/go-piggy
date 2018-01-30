@@ -132,14 +132,16 @@ func TestItAddsEventsToExistingManuscripts(t *testing.T) {
 	]`
 
 	request, _ := http.NewRequest(http.MethodPost, "/manuscripts/random-id/events", strings.NewReader(eventJSON))
+
 	request.Header.Set("content-type", "application/json")
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusAccepted, response.Code)
 	assert.Contains(t, emitter.events, go_piggy.Event{
-		ID:   "random-id",
-		Type: "manuscript",
+		Name:     "NewManuscriptVersion",
+		EntityID: "random-id",
+		Type:     "manuscript",
 		Facts: []go_piggy.Fact{
 			TitleChanged("Bob"),
 			AbstractChanged("Smith"),
