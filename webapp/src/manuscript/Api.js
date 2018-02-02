@@ -16,26 +16,21 @@ class ManuscriptAPI {
 
     updateManuscript(originalMS, newMS) {
         const eventsURL = `${this.baseURL}/manuscripts/${originalMS.EntityID}/events`;
-        var changes = []
+        var facts = []
 
         if (originalMS.Title.trim() !== newMS.Title.trim()) {
-            changes.push(fetch(eventsURL, {
-                method: 'POST',
-                body: JSON.stringify([{Op: 'SET', Key: 'Title', Value: newMS.Title}])
-            }))
+            facts.push({Op: 'SET', Key: 'Title', Value: newMS.Title})
         }
 
         if (originalMS.Abstract.trim() !== newMS.Abstract.trim()) {
-            changes.push(fetch(eventsURL, {
-                method: 'POST',
-                body: JSON.stringify([{Op: 'SET', Key: 'Abstract', Value: newMS.Abstract}])
-            }))
+            facts.push({Op: 'SET', Key: 'Abstract', Value: newMS.Abstract})
         }
 
-        return Promise.all(changes)
+        return fetch(eventsURL, {
+            method: 'POST',
+            body: JSON.stringify(facts)
+        })
     }
-
-
 }
 
 function checkCreated(res) {

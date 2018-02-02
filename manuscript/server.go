@@ -2,8 +2,8 @@ package manuscript
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/quii/go-piggy"
 	"io/ioutil"
 	"net/http"

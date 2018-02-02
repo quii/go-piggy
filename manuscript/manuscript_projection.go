@@ -1,9 +1,10 @@
 package manuscript
 
 import (
+	"fmt"
 	"github.com/quii/go-piggy"
 	"regexp"
-	"log"
+	"time"
 )
 
 type Projection struct {
@@ -17,6 +18,19 @@ type Projection struct {
 
 type ProjectionOptions struct {
 	VersionChanges chan int
+	Logger         go_piggy.Logger
+}
+
+func readyOptions(userOptions *ProjectionOptions) *ProjectionOptions {
+	if userOptions == nil {
+		userOptions = &ProjectionOptions{}
+	}
+
+	if userOptions.Logger == nil {
+		userOptions.Logger = go_piggy.NewStdoutLogger()
+	}
+
+	return userOptions
 }
 
 func NewProjection(receiver go_piggy.Receiver, options *ProjectionOptions) (m *Projection) {
@@ -26,7 +40,7 @@ func NewProjection(receiver go_piggy.Receiver, options *ProjectionOptions) (m *P
 	m.changes = make(chan int, 1)
 	m.versionedManuscripts = make(VersionedManuscripts)
 	m.events = make(map[string][]go_piggy.Event)
-	m.options = options
+	m.options = readyOptions(options)
 
 	go m.listenForUpdates()
 
@@ -56,15 +70,23 @@ func (p *Projection) listenForUpdates() {
 	events := p.receiver.Listen(0)
 
 	for event := range events {
-		log.Printf("Event received %s\n", event)
+		p.options.Logger.Info(fmt.Sprintf("got event %+v", event))
 		manuscript := p.versionedManuscripts.CurrentRevision(event.EntityID)
 		pastEvents, _ := p.events[event.EntityID]
 		p.events[event.EntityID] = append(pastEvents, event)
 		p.versionedManuscripts[event.EntityID] = append(p.versionedManuscripts[event.EntityID], manuscript.Update(event.Facts))
 
-		p.version++
-		if p.options != nil {
-			p.options.VersionChanges <- p.version
+		go p.incrementVersion()
+	}
+}
+
+func (p *Projection) incrementVersion() {
+	p.version++
+
+	if p.options.VersionChanges != nil {
+		select {
+		case p.options.VersionChanges <- p.version:
+		case <-time.After(1 * time.Second):
 		}
 	}
 }
