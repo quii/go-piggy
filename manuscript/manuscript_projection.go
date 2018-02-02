@@ -21,18 +21,6 @@ type ProjectionOptions struct {
 	Logger         go_piggy.Logger
 }
 
-func readyOptions(userOptions *ProjectionOptions) *ProjectionOptions {
-	if userOptions == nil {
-		userOptions = &ProjectionOptions{}
-	}
-
-	if userOptions.Logger == nil {
-		userOptions.Logger = go_piggy.NewStdoutLogger()
-	}
-
-	return userOptions
-}
-
 func NewProjection(receiver go_piggy.Receiver, options *ProjectionOptions) (m *Projection) {
 
 	m = new(Projection)
@@ -101,3 +89,15 @@ func (p *Projection) incrementVersion() {
 
 var authorsRegex = regexp.MustCompile(`Authors\[\d+\]`)
 var authorIndexRegex = regexp.MustCompile(`(\d+)`) //todo: i suck at regex and it feels dangerous just to match the first number
+
+func readyOptions(userOptions *ProjectionOptions) *ProjectionOptions {
+	if userOptions == nil {
+		userOptions = &ProjectionOptions{}
+	}
+
+	if userOptions.Logger == nil {
+		userOptions.Logger = go_piggy.NewStdoutLogger()
+	}
+
+	return userOptions
+}

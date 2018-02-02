@@ -7,8 +7,6 @@ import (
 type VersionedManuscript []Manuscript
 type VersionedManuscripts map[string]VersionedManuscript
 
-//todo: testme
-
 func (v VersionedManuscript) CurrentRevision() Manuscript {
 	return v[len(v)-1]
 }
