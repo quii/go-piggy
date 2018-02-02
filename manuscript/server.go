@@ -6,12 +6,9 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/quii/go-piggy"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 )
-
-//todo: i have totally ruined this file by hacking ;/
 
 type Repo interface {
 	GetManuscript(id string) Manuscript
@@ -81,7 +78,6 @@ func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
 	}))
 
 	location := "/manuscripts/" + newEntityID
-	log.Println("manuscript created at", location)
 	w.Header().Add("location", location)
 	w.Header().Add("Access-Control-Expose-Headers", "Location")
 	w.WriteHeader(http.StatusCreated)

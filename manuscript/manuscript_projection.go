@@ -3,6 +3,7 @@ package manuscript
 import (
 	"github.com/quii/go-piggy"
 	"regexp"
+	"log"
 )
 
 type Projection struct {
@@ -55,6 +56,7 @@ func (p *Projection) listenForUpdates() {
 	events := p.receiver.Listen(0)
 
 	for event := range events {
+		log.Printf("Event received %s\n", event)
 		manuscript := p.versionedManuscripts.CurrentRevision(event.EntityID)
 		pastEvents, _ := p.events[event.EntityID]
 		p.events[event.EntityID] = append(pastEvents, event)

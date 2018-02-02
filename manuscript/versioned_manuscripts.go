@@ -1,6 +1,8 @@
 package manuscript
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type VersionedManuscripts map[string][]Manuscript
 
