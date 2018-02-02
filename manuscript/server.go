@@ -11,10 +11,11 @@ import (
 )
 
 type Repo interface {
-	GetManuscript(id string) Manuscript
-	GetVersionedManuscript(entityID string, version int) (Manuscript, error)
-	Versions(entityID string) int
+	//GetManuscript(id string) Manuscript
+	//GetVersionedManuscript(entityID string, version int) (Manuscript, error)
+	//Versions(entityID string) int
 	Events(entityID string) []go_piggy.Event
+	GetVersionedManuscript(entityID string) (VersionedManuscript, error)
 }
 
 type Server struct {
@@ -95,23 +96,26 @@ func (s *Server) showEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(eventsAsJSON)
 }
 
+//todo: handle errors
 func (s *Server) getManuscriptJSON(w http.ResponseWriter, r *http.Request) {
 	entityID := entityIDFromRequest(r)
 	version := r.URL.Query().Get("version")
 
 	var manuscript Manuscript
 
-	if version != "" {
-		v, _ := strconv.Atoi(version)
-		m, _ := s.Repo.GetVersionedManuscript(entityID, v)
-		manuscript = m
-	} else {
-		manuscript = s.Repo.GetManuscript(entityID)
-	}
+	m, err := s.Repo.GetVersionedManuscript(entityID)
 
-	if manuscript.EntityID == "" {
+	if err != nil {
+		//todo: 404 for any error probably isnt quite right!
 		w.WriteHeader(http.StatusNotFound)
 		return
+	}
+
+	if version != "" {
+		v, _ := strconv.Atoi(version)
+		manuscript, _ = m.Version(v)
+	} else {
+		manuscript = m.CurrentRevision()
 	}
 
 	manuscriptJSON, _ := json.Marshal(manuscript)

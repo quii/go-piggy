@@ -4,37 +4,19 @@ import (
 	"fmt"
 )
 
-type VersionedManuscripts map[string][]Manuscript
+type VersionedManuscript []Manuscript
+type VersionedManuscripts map[string]VersionedManuscript
 
 //todo: testme
-func (v VersionedManuscripts) CurrentRevision(entityID string) Manuscript {
-	versions, exists := v[entityID]
 
-	if !exists {
-		return Manuscript{
-			EntityID: entityID,
-		}
-	}
-
-	return versions[len(versions)-1]
+func (v VersionedManuscript) CurrentRevision() Manuscript {
+	return v[len(v)-1]
 }
 
-//todo: testme
-func (v VersionedManuscripts) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
-	versions, exists := v[entityID]
-
-	if !exists {
-		return Manuscript{}, fmt.Errorf("manuscript %s does not exist", entityID)
+func (v VersionedManuscript) Version(version int) (Manuscript, error) {
+	if version > len(v) {
+		return Manuscript{}, fmt.Errorf("the latest version number for %s is %d but you asked for %d", v.CurrentRevision().EntityID, len(v), version)
 	}
 
-	if len(versions) < version {
-		return Manuscript{}, fmt.Errorf("manuscript version %d of %s does not exist", version, entityID)
-	}
-
-	return versions[version-1], nil
-}
-
-func (v VersionedManuscripts) Versions(entityID string) int {
-	versions, _ := v[entityID]
-	return len(versions)
+	return v[version-1], nil
 }

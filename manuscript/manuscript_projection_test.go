@@ -47,7 +47,7 @@ func TestItReadsNewManuscriptEvent(t *testing.T) {
 
 	waitForManuscriptVersion(t, 1, changes)
 
-	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
+	parsedManuscript := projection.currentRevisionOrDefault(manuscript.EntityID)
 
 	expectedManuscript := manuscript
 	expectedManuscript.Version = 1
@@ -88,8 +88,8 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 		Version:  3,
 	}
 
-	assert.Equal(t, projection.versionedManuscripts.CurrentRevision(man1.EntityID), expectedMan1State)
-	assert.Equal(t, projection.versionedManuscripts.CurrentRevision(man2.EntityID), expectedMan2State)
+	assert.Equal(t, expectedMan1State, projection.currentRevisionOrDefault(man1.EntityID))
+	assert.Equal(t, expectedMan2State, projection.currentRevisionOrDefault(man2.EntityID))
 }
 
 func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
@@ -108,7 +108,7 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 
 	waitForManuscriptVersion(t, 3, changes)
 
-	parsedManuscript := projection.versionedManuscripts.CurrentRevision(manuscript.EntityID)
+	parsedManuscript := projection.currentRevisionOrDefault(manuscript.EntityID)
 
 	assert.Equal(t, parsedManuscript.Authors[0], "CJ")
 	assert.Equal(t, parsedManuscript.Authors[1], "TV")

@@ -47,23 +47,29 @@ func NewProjection(receiver go_piggy.Receiver, options *ProjectionOptions) (m *P
 	return m
 }
 
-//todo: should probably be elsewhere
 func (p *Projection) Events(entityID string) []go_piggy.Event {
 	events, _ := p.events[entityID]
 	return events
 }
 
-// are these two functions really needed? perhaps a simpler design exists
-func (p *Projection) GetManuscript(entityID string) Manuscript {
-	return p.versionedManuscripts.CurrentRevision(entityID)
+func (p *Projection) GetVersionedManuscript(entityID string) (VersionedManuscript, error) {
+	manuscripts, exists := p.versionedManuscripts[entityID]
+
+	if !exists {
+		return VersionedManuscript{}, fmt.Errorf("manuscript %s does not exist", entityID)
+	}
+
+	return manuscripts, nil
 }
 
-func (p *Projection) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
-	return p.versionedManuscripts.GetVersionedManuscript(entityID, version)
-}
+func (p *Projection) currentRevisionOrDefault(entityID string) Manuscript {
+	versions, err := p.GetVersionedManuscript(entityID)
 
-func (p *Projection) Versions(entityID string) int {
-	return p.versionedManuscripts.Versions(entityID)
+	if err != nil {
+		return Manuscript{EntityID: entityID}
+	}
+
+	return versions.CurrentRevision()
 }
 
 func (p *Projection) listenForUpdates() {
@@ -71,7 +77,9 @@ func (p *Projection) listenForUpdates() {
 
 	for event := range events {
 		p.options.Logger.Info(fmt.Sprintf("got event %+v", event))
-		manuscript := p.versionedManuscripts.CurrentRevision(event.EntityID)
+
+		manuscript := p.currentRevisionOrDefault(event.EntityID)
+
 		pastEvents, _ := p.events[event.EntityID]
 		p.events[event.EntityID] = append(pastEvents, event)
 		p.versionedManuscripts[event.EntityID] = append(p.versionedManuscripts[event.EntityID], manuscript.Update(event.Facts))

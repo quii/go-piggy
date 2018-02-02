@@ -2,6 +2,7 @@ package manuscript
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/quii/go-piggy"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -39,7 +40,7 @@ func TestItGetsManuscripts(t *testing.T) {
 	}
 
 	repo := &fakeManuscriptRepo{
-		manuscripts: map[string][]Manuscript{
+		manuscripts: VersionedManuscripts{
 			"random-id": {manuscript},
 		},
 	}
@@ -76,7 +77,7 @@ func TestItGetsVersionedManuscripts(t *testing.T) {
 	manuscriptV2.Title = "new title"
 
 	repo := &fakeManuscriptRepo{
-		manuscripts: map[string][]Manuscript{
+		manuscripts: VersionedManuscripts{
 			"random-id": {manuscriptV1, manuscriptV2},
 		},
 	}
@@ -157,16 +158,12 @@ func (f *fakeManuscriptRepo) Events(entityID string) []go_piggy.Event {
 	panic("implement me")
 }
 
-func (f *fakeManuscriptRepo) Versions(entityID string) int {
-	panic("implement me")
-}
-
-func (f *fakeManuscriptRepo) GetManuscript(id string) Manuscript {
-	return f.manuscripts.CurrentRevision(id)
-}
-
-func (f *fakeManuscriptRepo) GetVersionedManuscript(entityID string, version int) (Manuscript, error) {
-	return f.manuscripts.GetVersionedManuscript(entityID, version)
+func (f *fakeManuscriptRepo) GetVersionedManuscript(entityID string) (VersionedManuscript, error) {
+	manuscripts, exists := f.manuscripts[entityID]
+	if !exists {
+		return VersionedManuscript{}, fmt.Errorf("entityID %s does not exist", entityID)
+	}
+	return manuscripts, nil
 }
 
 type fakeEmitter struct {
