@@ -3,6 +3,7 @@ package manuscript
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"github.com/quii/go-piggy"
 	"io/ioutil"
 	"log"
@@ -42,13 +43,14 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 
 	r := mux.NewRouter()
 
+	cors := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
+
 	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON)
 	r.HandleFunc("/manuscripts", s.createManuscript).Methods("POST")
 	r.HandleFunc("/manuscripts/{entityID}/events", s.addEventsToManuscript).Methods("POST")
 	r.HandleFunc("/manuscripts/{entityID}/events", s.showEvents).Methods("GET")
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./webapp/build/")))
 
-	s.handler = r
+	s.handler = cors(r)
 
 	return s
 }
