@@ -11,16 +11,13 @@ import (
 )
 
 type Repo interface {
-	//GetManuscript(id string) Manuscript
-	//GetVersionedManuscript(entityID string, version int) (Manuscript, error)
-	//Versions(entityID string) int
 	Events(entityID string) []go_piggy.Event
 	GetVersionedManuscript(entityID string) (VersionedManuscript, error)
 }
 
 type Server struct {
 	Repo              Repo
-	Emitter           go_piggy.Emitter
+	Aggregate         go_piggy.Aggregate
 	EntityIdGenerator func() string
 	handler           http.Handler
 }
@@ -29,10 +26,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.handler.ServeHTTP(w, r)
 }
 
-func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *Server {
+func NewServer(repo Repo, aggregate go_piggy.Aggregate, options ...func(*Server)) *Server {
 	s := new(Server)
 	s.Repo = repo
-	s.Emitter = emitter
+	s.Aggregate = aggregate
 	s.EntityIdGenerator = go_piggy.RandomID
 
 	for _, op := range options {
@@ -45,7 +42,7 @@ func NewServer(repo Repo, emitter go_piggy.Emitter, options ...func(*Server)) *S
 
 	r.HandleFunc("/manuscripts/{entityID}", s.getManuscriptJSON)
 	r.HandleFunc("/manuscripts", s.createManuscript).Methods("POST")
-	r.HandleFunc("/manuscripts/{entityID}/events", s.addEventsToManuscript).Methods("POST")
+	r.HandleFunc("/manuscripts/{entityID}/events", s.sendCommands).Methods("POST")
 	r.HandleFunc("/manuscripts/{entityID}/events", s.showEvents).Methods("GET")
 
 	s.handler = cors(r)
@@ -59,7 +56,7 @@ func WithEntityIdGenerator(f func() string) func(*Server) {
 	}
 }
 
-func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
+func (s *Server) sendCommands(w http.ResponseWriter, r *http.Request) {
 	entityID := entityIDFromRequest(r)
 
 	var facts []go_piggy.Fact
@@ -67,14 +64,20 @@ func (s *Server) addEventsToManuscript(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	json.Unmarshal(body, &facts)
-	s.Emitter.Send(NewManuscriptVersionEvent(Manuscript{EntityID: entityID}, facts...))
-	w.WriteHeader(http.StatusAccepted)
+
+	accepted := s.Aggregate.ProcessCommand(NewManuscriptVersionEvent(entityID, facts...))
+
+	if accepted {
+		w.WriteHeader(http.StatusAccepted)
+	} else {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+	}
 }
 
 func (s *Server) createManuscript(w http.ResponseWriter, r *http.Request) {
 	newEntityID := s.EntityIdGenerator()
 
-	s.Emitter.Send(NewManuscriptEvent(Manuscript{
+	s.Aggregate.ProcessCommand(NewManuscriptEvent(Manuscript{
 		EntityID: newEntityID,
 	}))
 

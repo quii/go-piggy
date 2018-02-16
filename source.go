@@ -12,3 +12,7 @@ type EventSource interface {
 	Emitter
 	Receiver
 }
+
+type Aggregate interface {
+	ProcessCommand(event Event) (accepted bool)
+}

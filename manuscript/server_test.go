@@ -2,7 +2,6 @@ package manuscript
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/quii/go-piggy"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -120,7 +119,9 @@ func TestIt404sForManuscriptsThatDontExist(t *testing.T) {
 }
 
 func TestItAddsEventsToExistingManuscripts(t *testing.T) {
-	emitter := &fakeEmitter{}
+	emitter := &fakeEmitter{
+		accept: true,
+	}
 
 	server := NewServer(
 		&fakeManuscriptRepo{},
@@ -150,28 +151,14 @@ func TestItAddsEventsToExistingManuscripts(t *testing.T) {
 	})
 }
 
-type fakeManuscriptRepo struct {
-	manuscripts VersionedManuscripts
-}
-
-func (f *fakeManuscriptRepo) Events(entityID string) []go_piggy.Event {
-	panic("implement me")
-}
-
-func (f *fakeManuscriptRepo) GetVersionedManuscript(entityID string) (VersionedManuscript, error) {
-	manuscripts, exists := f.manuscripts[entityID]
-	if !exists {
-		return VersionedManuscript{}, fmt.Errorf("entityID %s does not exist", entityID)
-	}
-	return manuscripts, nil
-}
-
 type fakeEmitter struct {
 	events []go_piggy.Event
+	accept bool
 }
 
-func (f *fakeEmitter) Send(event go_piggy.Event) {
+func (f *fakeEmitter) ProcessCommand(event go_piggy.Event) (accepted bool) {
 	f.events = append(f.events, event)
+	return f.accept
 }
 
 func withFixedEntityId(id string) func(*Server) {

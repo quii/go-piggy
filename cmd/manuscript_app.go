@@ -9,10 +9,10 @@ import (
 
 func main() {
 	eventSource := go_piggy.NewInMemoryEventSource()
-
 	projector := manuscript.NewProjection(eventSource, nil)
+	aggregate := manuscript.NewAggregate(projector, eventSource)
 
-	server := manuscript.NewServer(projector, eventSource)
+	server := manuscript.NewServer(projector, aggregate)
 
 	log.Println("Listening on 8080")
 

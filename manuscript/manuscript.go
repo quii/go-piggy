@@ -10,6 +10,7 @@ type Manuscript struct {
 	Title, Abstract string
 	Authors         []string
 	Version         int
+	Published       bool
 }
 
 func (m *Manuscript) InsertAuthorIn(index int, name string) {

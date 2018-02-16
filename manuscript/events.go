@@ -23,10 +23,10 @@ func NewManuscriptEvent(m Manuscript) go_piggy.Event {
 	return event
 }
 
-func NewManuscriptVersionEvent(m Manuscript, facts ...go_piggy.Fact) go_piggy.Event {
+func NewManuscriptVersionEvent(entityID string, facts ...go_piggy.Fact) go_piggy.Event {
 	return go_piggy.Event{
 		Name:     "NewManuscriptVersion",
-		EntityID: m.EntityID,
+		EntityID: entityID,
 		Type:     manuscriptEventType,
 		Facts:    facts,
 	}

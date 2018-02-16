@@ -69,9 +69,9 @@ func TestItReadsFactsToTheCorrectManuscripts(t *testing.T) {
 	eventSource := &go_piggy.InMemorySource{}
 	eventSource.Send(NewManuscriptEvent(man1))
 	eventSource.Send(NewManuscriptEvent(man2))
-	eventSource.Send(NewManuscriptVersionEvent(man1, TitleChanged("Showered and blue blazered")))
-	eventSource.Send(NewManuscriptVersionEvent(man2, TitleChanged("Fill yourself with quarters")))
-	eventSource.Send(NewManuscriptVersionEvent(man2, TitleChanged("lol")))
+	eventSource.Send(NewManuscriptVersionEvent(man1.EntityID, TitleChanged("Showered and blue blazered")))
+	eventSource.Send(NewManuscriptVersionEvent(man2.EntityID, TitleChanged("Fill yourself with quarters")))
+	eventSource.Send(NewManuscriptVersionEvent(man2.EntityID, TitleChanged("lol")))
 
 	changes := make(chan int, 10)
 	options := &ProjectionOptions{VersionChanges: changes, Logger: go_piggy.NewTestLogger(t)}
@@ -103,8 +103,8 @@ func TestAuthorEventsAreProjectedAcrossMultipleEvents(t *testing.T) {
 	eventSource := &go_piggy.InMemorySource{}
 
 	eventSource.Send(NewManuscriptEvent(manuscript))
-	eventSource.Send(NewManuscriptVersionEvent(manuscript, AuthorsSet(0, "CJ")))
-	eventSource.Send(NewManuscriptVersionEvent(manuscript, AuthorsSet(1, "TV")))
+	eventSource.Send(NewManuscriptVersionEvent(manuscript.EntityID, AuthorsSet(0, "CJ")))
+	eventSource.Send(NewManuscriptVersionEvent(manuscript.EntityID, AuthorsSet(1, "TV")))
 
 	changes := make(chan int, 1)
 	options := &ProjectionOptions{VersionChanges: changes, Logger: go_piggy.NewTestLogger(t)}
